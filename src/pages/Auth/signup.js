@@ -1,0 +1,204 @@
+// src/pages/Auth/SignUp.js
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import Swal from "sweetalert2";
+import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
+import { jwtDecode } from "jwt-decode";
+import "./Auth.css";
+
+function SignUpComponent() {
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    confirmPassword: ""
+  });
+  const [isSigningUp, setIsSigningUp] = useState(false);
+  const navigate = useNavigate();
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSignUp = async () => {
+    const { email, password, confirmPassword } = formData;
+
+    if (!email || !password || !confirmPassword) {
+      Swal.fire("Missing Fields", "Please fill all fields", "warning");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Swal.fire("Password Mismatch", "Passwords do not match", "error");
+      return;
+    }
+
+    if (password.length < 6) {
+      Swal.fire("Weak Password", "Password must be at least 6 characters", "warning");
+      return;
+    }
+
+    setIsSigningUp(true);
+
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/auth/signup",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        await Swal.fire("Sign Up Successful!", "Your account has been created!", "success");
+        navigate("/login");
+      } else {
+        Swal.fire("Sign Up Failed", data.message || "Something went wrong", "error");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      Swal.fire("Network Error", "Please check your connection", "error");
+    } finally {
+      setIsSigningUp(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      const decoded = jwtDecode(credentialResponse.credential);
+      const { email, name, picture } = decoded;
+
+      const response = await fetch(
+        "http://localhost:5000/api/auth/google-signup",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            email, 
+            username: name,
+            profileImage: picture 
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("email", data.email);
+        localStorage.setItem("username", data.username);
+        if (data.profileImage) {
+          localStorage.setItem("profileImage", data.profileImage);
+        }
+
+        await Swal.fire("Sign Up Successful!", `Welcome to AI Trip Planner, ${data.username}!`, "success");
+        navigate("/dashboard");
+      } else {
+        Swal.fire("Auth Failed", data.message || "Unable to sign up with Google", "error");
+      }
+    } catch (error) {
+      console.error("Google Auth Error:", error);
+      Swal.fire("Error", "Google authentication failed", "error");
+    }
+  };
+
+  const handleGoogleError = () => {
+    Swal.fire("Google Sign Up Failed", "Please try again later", "error");
+  };
+
+  return (
+    <div className="auth-container">
+      <div className="auth-card">
+        <h2 className="auth-title">✈️ AI Trip Planner</h2>
+        <h3 className="auth-subtitle">CREATE ACCOUNT</h3>
+
+        <div className="auth-input-container">
+          <label className="auth-label" htmlFor="email">Email:</label>
+          <input
+            className="auth-input"
+            id="email"
+            name="email"
+            type="email"
+            placeholder="Enter your email"
+            value={formData.email}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div className="auth-input-container">
+          <label className="auth-label" htmlFor="password">Password:</label>
+          <input
+            className="auth-input"
+            id="password"
+            name="password"
+            type="password"
+            placeholder="Enter your password"
+            value={formData.password}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div className="auth-input-container">
+          <label className="auth-label" htmlFor="confirmPassword">Confirm Password:</label>
+          <input
+            className="auth-input"
+            id="confirmPassword"
+            name="confirmPassword"
+            type="password"
+            placeholder="Confirm your password"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div className="auth-actions">
+          <button
+            className={`auth-button ${isSigningUp ? "loading" : ""}`}
+            type="button"
+            onClick={handleSignUp}
+            disabled={isSigningUp}
+          >
+            {isSigningUp ? "Creating Account..." : "Sign Up"}
+          </button>
+        </div>
+
+        <div className="auth-divider">
+          <span>OR</span>
+        </div>
+
+        <div className="google-auth-container">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
+            shape="pill"
+            theme="filled_blue"
+            size="large"
+            text="signup_with"
+          />
+        </div>
+
+        <div className="auth-switch-container">
+          <p className="auth-switch-text">
+            Already have an account?
+            <Link to="/login" className="auth-switch-button">
+              Sign In
+            </Link>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function SignUpPage() {
+  return (
+    <GoogleOAuthProvider clientId="221878465173-tggq7abqtnmn2di7f214lvgaevenk7dn.apps.googleusercontent.com">
+      <SignUpComponent />
+    </GoogleOAuthProvider>
+  );
+}

@@ -1,5 +1,5 @@
 // src/pages/Auth/ResetPassword.js
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import "./Auth.css";
@@ -8,35 +8,10 @@ function ResetPassword() {
   const { token } = useParams();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    email: "",
     password: "",
     confirmPassword: ""
   });
   const [isResetting, setIsResetting] = useState(false);
-  const [isValidToken, setIsValidToken] = useState(true);
-
-  useEffect(() => {
-    const verifyToken = async () => {
-      try {
-        const response = await fetch(
-          `http://localhost:5000/api/auth/verify-reset-token/${token}`
-        );
-        
-        if (!response.ok) {
-          setIsValidToken(false);
-        }
-      } catch (error) {
-        console.error("Token verification error:", error);
-        setIsValidToken(false);
-      }
-    };
-
-    if (token) {
-      verifyToken();
-    } else {
-      setIsValidToken(false);
-    }
-  }, [token]);
 
   const handleChange = (e) => {
     setFormData({
@@ -46,9 +21,9 @@ function ResetPassword() {
   };
 
   const handleResetPassword = async () => {
-    const { email, password, confirmPassword } = formData;
+    const { password, confirmPassword } = formData;
 
-    if (!email || !password || !confirmPassword) {
+    if (!password || !confirmPassword) {
       Swal.fire("Missing Fields", "Please fill all fields", "warning");
       return;
     }
@@ -67,14 +42,13 @@ function ResetPassword() {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/auth/reset-password",
+        "http://127.0.0.1:8000/auth/reset-password",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ 
             token, 
-            email,
-            newPassword: password 
+            new_password: password 
           }),
         }
       );
@@ -89,7 +63,7 @@ function ResetPassword() {
         );
         navigate("/login");
       } else {
-        Swal.fire("Reset Failed", data.message || "Invalid or expired token", "error");
+        Swal.fire("Reset Failed", data.detail || "Invalid or expired token", "error");
       }
     } catch (error) {
       console.error("Error:", error);
@@ -99,46 +73,14 @@ function ResetPassword() {
     }
   };
 
-  if (!isValidToken) {
-    return (
-      <div className="auth-container">
-        <div className="auth-card">
-          <h2 className="auth-title">✈️ AI Trip Planner</h2>
-          <h3 className="auth-subtitle">INVALID LINK</h3>
-          <p className="auth-description error">
-            This reset link is invalid or has expired. Please request a new password reset link.
-          </p>
-          <div className="auth-actions">
-            <Link to="/forgot-password" className="auth-button">
-              Request New Reset Link
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="auth-container">
       <div className="auth-card">
         <h2 className="auth-title">✈️ AI Trip Planner</h2>
         <h3 className="auth-subtitle">CREATE NEW PASSWORD</h3>
         <p className="auth-description">
-          Please enter your email and new password below.
+          Please enter your new password below.
         </p>
-
-        <div className="auth-input-container">
-          <label className="auth-label" htmlFor="email">Email:</label>
-          <input
-            className="auth-input"
-            id="email"
-            name="email"
-            type="email"
-            placeholder="Enter your email"
-            value={formData.email}
-            onChange={handleChange}
-          />
-        </div>
 
         <div className="auth-input-container">
           <label className="auth-label" htmlFor="password">New Password:</label>

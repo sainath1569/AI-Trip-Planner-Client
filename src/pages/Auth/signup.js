@@ -8,6 +8,7 @@ import "./Auth.css";
 
 function SignUpComponent() {
   const [formData, setFormData] = useState({
+    username: "",
     email: "",
     password: "",
     confirmPassword: ""
@@ -23,9 +24,9 @@ function SignUpComponent() {
   };
 
   const handleSignUp = async () => {
-    const { email, password, confirmPassword } = formData;
+    const { username, email, password, confirmPassword } = formData;
 
-    if (!email || !password || !confirmPassword) {
+    if (!username || !email || !password || !confirmPassword) {
       Swal.fire("Missing Fields", "Please fill all fields", "warning");
       return;
     }
@@ -40,15 +41,28 @@ function SignUpComponent() {
       return;
     }
 
+    if (username.length < 3) {
+      Swal.fire("Invalid Username", "Username must be at least 3 characters", "warning");
+      return;
+    }
+
     setIsSigningUp(true);
 
     try {
+      const requestBody = {
+        username: username,
+        email: email,
+        password: password
+      };
+
+      console.log("Sending data:", requestBody);
+
       const response = await fetch(
-        "http://localhost:5000/api/auth/signup",
+        "http://127.0.0.1:8000/auth/register",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
+          body: JSON.stringify(requestBody),
         }
       );
 
@@ -58,7 +72,7 @@ function SignUpComponent() {
         await Swal.fire("Sign Up Successful!", "Your account has been created!", "success");
         navigate("/login");
       } else {
-        Swal.fire("Sign Up Failed", data.message || "Something went wrong", "error");
+        Swal.fire("Sign Up Failed", data.detail || "Something went wrong", "error");
       }
     } catch (error) {
       console.error("Error:", error);
@@ -73,15 +87,26 @@ function SignUpComponent() {
       const decoded = jwtDecode(credentialResponse.credential);
       const { email, name, picture } = decoded;
 
+      // Use Google name as username
+      const username = name
+        .toLowerCase()
+        .replace(/\s+/g, '_')
+        .replace(/[^a-z0-9_]/g, '')
+        .substring(0, 20);
+
+      console.log("Google signup - Username:", username);
+      console.log("Google signup - Email:", email);
+
+      // Use the new Google auth endpoint
       const response = await fetch(
-        "http://localhost:5000/api/auth/google-signup",
+        "http://127.0.0.1:8000/auth/google-auth",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ 
-            email, 
-            username: name,
-            profileImage: picture 
+            email: email,
+            username: username,
+            profile_image: picture 
           }),
         }
       );
@@ -89,17 +114,17 @@ function SignUpComponent() {
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem("token", data.token);
+        localStorage.setItem("token", data.access_token);
         localStorage.setItem("email", data.email);
         localStorage.setItem("username", data.username);
-        if (data.profileImage) {
-          localStorage.setItem("profileImage", data.profileImage);
+        if (data.profile_image) {
+          localStorage.setItem("profileImage", data.profile_image);
         }
 
         await Swal.fire("Sign Up Successful!", `Welcome to AI Trip Planner, ${data.username}!`, "success");
-        navigate("/dashboard");
+        navigate("/planner");
       } else {
-        Swal.fire("Auth Failed", data.message || "Unable to sign up with Google", "error");
+        Swal.fire("Google Sign Up Failed", data.detail || "Unable to sign up with Google", "error");
       }
     } catch (error) {
       console.error("Google Auth Error:", error);
@@ -116,6 +141,19 @@ function SignUpComponent() {
       <div className="auth-card">
         <h2 className="auth-title">✈️ AI Trip Planner</h2>
         <h3 className="auth-subtitle">CREATE ACCOUNT</h3>
+
+        <div className="auth-input-container">
+          <label className="auth-label" htmlFor="username">Username:</label>
+          <input
+            className="auth-input"
+            id="username"
+            name="username"
+            type="text"
+            placeholder="Choose a username"
+            value={formData.username}
+            onChange={handleChange}
+          />
+        </div>
 
         <div className="auth-input-container">
           <label className="auth-label" htmlFor="email">Email:</label>

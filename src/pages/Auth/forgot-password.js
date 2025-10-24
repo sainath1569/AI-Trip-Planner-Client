@@ -19,7 +19,7 @@ function ForgotPassword() {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/auth/forgot-password",
+        "http://127.0.0.1:8000/auth/forgot-password",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -32,12 +32,13 @@ function ForgotPassword() {
       if (response.ok) {
         await Swal.fire(
           "Reset Link Sent!",
-          "Please check your email for password reset instructions",
+          "Password reset link has been sent to your email",
           "success"
         );
         navigate("/login");
       } else {
-        Swal.fire("Request Failed", data.message || "Email not found", "error");
+        // Show specific error message from backend
+        Swal.fire("Request Failed", data.detail || "No account found with this email", "error");
       }
     } catch (error) {
       console.error("Error:", error);

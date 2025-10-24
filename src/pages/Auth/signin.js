@@ -33,7 +33,7 @@ function LoginComponent() {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/api/auth/login",
+        "http://127.0.0.1:8000/auth/login",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -44,17 +44,17 @@ function LoginComponent() {
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem("token", data.token);
+        localStorage.setItem("token", data.access_token);
         localStorage.setItem("email", data.email);
         localStorage.setItem("username", data.username);
-        if (data.profileImage) {
-          localStorage.setItem("profileImage", data.profileImage);
+        if (data.profile_image) {
+          localStorage.setItem("profileImage", data.profile_image);
         }
 
         await Swal.fire("Login Successful!", `Welcome back, ${data.username}!`, "success");
-        navigate("/dashboard");
+        navigate("/planner");
       } else {
-        Swal.fire("Login Failed", data.message || "Invalid credentials", "error");
+        Swal.fire("Login Failed", data.detail || "Invalid credentials", "error");
       }
     } catch (error) {
       console.error("Error:", error);
@@ -69,15 +69,18 @@ function LoginComponent() {
       const decoded = jwtDecode(credentialResponse.credential);
       const { email, name, picture } = decoded;
 
+      const username = name.toLowerCase().replace(/\s+/g, '_');
+
+      // Use the Google auth endpoint
       const response = await fetch(
-        "http://localhost:5000/api/auth/google-login",
+        "http://127.0.0.1:8000/auth/google-auth",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ 
-            email, 
-            username: name,
-            profileImage: picture 
+            email: email,
+            username: username,
+            profile_image: picture 
           }),
         }
       );
@@ -85,17 +88,17 @@ function LoginComponent() {
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem("token", data.token);
+        localStorage.setItem("token", data.access_token);
         localStorage.setItem("email", data.email);
         localStorage.setItem("username", data.username);
-        if (data.profileImage) {
-          localStorage.setItem("profileImage", data.profileImage);
+        if (data.profile_image) {
+          localStorage.setItem("profileImage", data.profile_image);
         }
 
-        await Swal.fire("Login Successful!", `Welcome back, ${data.username}!`, "success");
-        navigate("/dashboard");
+        await Swal.fire("Login Successful!", `Welcome to AI Trip Planner, ${data.username}!`, "success");
+        navigate("/planner");
       } else {
-        Swal.fire("Auth Failed", data.message || "Unable to login with Google", "error");
+        Swal.fire("Google Login Failed", data.detail || "Unable to login with Google", "error");
       }
     } catch (error) {
       console.error("Google Auth Error:", error);

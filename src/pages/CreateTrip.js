@@ -1,3 +1,4 @@
+// src/pages/CreateTrip/CreateTrip.js
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
@@ -14,52 +15,56 @@ import {
   FaPaperPlane,
   FaCopy,
   FaChevronDown,
-  FaThumbtack
+  FaThumbtack,
+  FaCompass,
+  FaMapMarkerAlt,
+  FaCalendarAlt,
+  FaMoneyBillWave,
+  FaUsers
 } from 'react-icons/fa';
 import { 
-  RiUserSettingsLine
-} from 'react-icons/ri';
+  HiSparkles,
+  HiMap
+} from 'react-icons/hi';
 import '../styles/CreateTrip.css';
 
 const API_BASE_URL = 'http://127.0.0.1:8000';
 
-// Updated Chat Message Component with fixed header for AI responses
+// Updated Chat Message Component
 const ChatMessage = ({ message, isUser, onCopy, onDownload }) => {
   const [showHeader, setShowHeader] = useState(false);
 
   return (
     <div 
-      className={`chat-message ${isUser ? 'user-message' : 'ai-message'}`}
+      className={`chat-message-ct ${isUser ? 'user-message-ct' : 'ai-message-ct'}`}
       onMouseEnter={() => !isUser && setShowHeader(true)}
       onMouseLeave={() => !isUser && setShowHeader(false)}
     >
-      <div className="message-avatar">
-        {isUser ? <FaUser /> : <FaPlane />}
+      <div className="message-avatar-ct">
+        {isUser ? <FaUser /> : <HiSparkles />}
       </div>
-      <div className="message-content">
-        {/* Fixed header for AI messages */}
+      <div className="message-content-ct">
         {!isUser && showHeader && (
-          <div className="ai-message-header">
-            <div className="ai-header-actions">
+          <div className="ai-message-header-ct">
+            <div className="ai-header-actions-ct">
               <button 
-                className="header-action-btn copy-btn"
+                className="header-action-btn-ct copy-btn-ct"
                 onClick={() => onCopy(message)}
                 title="Copy this response"
-
               >
                 <FaCopy /> Copy
               </button>
               <button 
-                className="header-action-btn download-btn"
+                className="header-action-btn-ct download-btn-ct"
                 onClick={() => onDownload(message)}
                 title="Download as PDF"
               >
-                <FaDownload /> Download
+                <FaDownload /> PDF
               </button>
             </div>
           </div>
         )}
-        <pre>{message}</pre>
+        <div className="message-text-ct">{message}</div>
       </div>
     </div>
   );
@@ -77,7 +82,7 @@ const CreateTrip = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [user, setUser] = useState(null);
-  const [pinnedExpanded, setPinnedExpanded] = useState(false);
+  const [pinnedExpanded, setPinnedExpanded] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   
   const chatContainerRef = useRef(null);
@@ -87,7 +92,7 @@ const CreateTrip = () => {
     return localStorage.getItem('token') || localStorage.getItem('access_token');
   };
 
-  // Enhanced API call function with proper error handling
+  // Enhanced API call function
   const makeAuthenticatedRequest = async (endpoint, options = {}) => {
     const token = getAuthToken();
     
@@ -163,7 +168,7 @@ const CreateTrip = () => {
     }
   };
 
-  // SINGLE ROUTE: Use only /generate for everything
+  // Generate travel plan
   const generateTravelPlan = async (planData) => {
     try {
       const response = await makeAuthenticatedRequest('/plans/generate', {
@@ -218,15 +223,16 @@ const CreateTrip = () => {
     return pinnedIds.includes(planId);
   };
 
-  // Parse prompt to extract trip details for new trips
+  // Parse prompt to extract trip details
   const parsePrompt = (promptText) => {
     const durationMatch = promptText.match(/(\d+)-?day/i) || promptText.match(/(\d+)\s*days?/i);
     const destinationMatch = promptText.match(/to\s+([^,.!?]+)/i) || promptText.match(/in\s+([^,.!?]+)/i);
+    const budgetMatch = promptText.match(/\$(\d+)/i) || promptText.match(/(\d+)\s*(USD|dollars)/i);
     
     return {
       duration: durationMatch ? parseInt(durationMatch[1]) : 7,
       destination: destinationMatch ? destinationMatch[1].trim() : 'Custom Destination',
-      budget: null,
+      budget: budgetMatch ? parseInt(budgetMatch[1]) : null,
       currency: 'USD',
       preferences: [],
       group_size: 1
@@ -237,11 +243,9 @@ const CreateTrip = () => {
   const handleCopyMessage = async (content) => {
     try {
       await navigator.clipboard.writeText(content);
-      // You could add a small toast notification here instead of alert
       console.log('Message copied to clipboard!');
     } catch (err) {
       console.error('Failed to copy text: ', err);
-      // Fallback for browsers that don't support clipboard API
       const textArea = document.createElement('textarea');
       textArea.value = content;
       document.body.appendChild(textArea);
@@ -255,13 +259,9 @@ const CreateTrip = () => {
   // Download individual AI message as PDF
   const handleDownloadMessageAsPDF = (content) => {
     try {
-      // Create a new window for PDF generation
       const printWindow = window.open('', '_blank');
-      
-      // Get trip title for the PDF filename
       const tripTitle = activeTrip?.title || 'Travel Plan';
       
-      // Create PDF content with styling
       const pdfContent = `
         <!DOCTYPE html>
         <html>
@@ -278,12 +278,12 @@ const CreateTrip = () => {
             }
             .header {
               text-align: center;
-              border-bottom: 2px solid #4f46e5;
+              border-bottom: 2px solid #f59e0b;
               padding-bottom: 10px;
               margin-bottom: 20px;
             }
             .trip-title {
-              color: #4f46e5;
+              color: #f59e0b;
               font-size: 24px;
               margin: 0;
             }
@@ -298,7 +298,7 @@ const CreateTrip = () => {
               background: #f8fafc;
               padding: 20px;
               border-radius: 8px;
-              border-left: 4px solid #4f46e5;
+              border-left: 4px solid #f59e0b;
             }
             .footer {
               text-align: center;
@@ -329,7 +329,7 @@ const CreateTrip = () => {
           </div>
           <div class="content">${content}</div>
           <div class="footer">
-            Created with AI Trip Planner • ${window.location.origin}
+            Created with WanderAI • ${window.location.origin}
           </div>
         </body>
         </html>
@@ -338,10 +338,8 @@ const CreateTrip = () => {
       printWindow.document.write(pdfContent);
       printWindow.document.close();
       
-      // Wait for content to load then print as PDF
       setTimeout(() => {
         printWindow.print();
-        // Close the window after printing
         setTimeout(() => {
           printWindow.close();
         }, 1000);
@@ -375,7 +373,6 @@ const CreateTrip = () => {
             const fullTripDetails = await fetchTripDetails(tripToEdit.id);
             if (fullTripDetails) {
               setActiveTrip(fullTripDetails);
-              // Initialize conversation with existing content
               setConversation([
                 {
                   message: fullTripDetails.content || `I've created a ${fullTripDetails.duration}-day trip to ${fullTripDetails.destination} for you!`,
@@ -403,7 +400,7 @@ const CreateTrip = () => {
     }
   }, [conversation]);
 
-  // Handle trip click - load the full plan
+  // Handle trip click
   const handleTripClick = async (trip) => {
     console.log('🔄 Loading trip details for:', trip.title);
     
@@ -414,7 +411,6 @@ const CreateTrip = () => {
       
       if (fullTripDetails) {
         setActiveTrip(fullTripDetails);
-        // Initialize conversation with existing content
         setConversation([
           {
             message: fullTripDetails.content || `I've created a ${fullTripDetails.duration}-day trip to ${fullTripDetails.destination} for you!`,
@@ -440,115 +436,119 @@ const CreateTrip = () => {
     }
   };
 
-  // Use only /generate route for everything
+  // Handle sending messages
   const handleSendMessage = async () => {
-    if (!prompt.trim()) return;
+  if (!prompt.trim()) return;
 
-    setIsGenerating(true);
+  setIsGenerating(true);
 
-    try {
-      // Add user message to conversation
-      const userMessage = {
-        message: prompt,
-        isUser: true,
-        timestamp: new Date().toISOString()
-      };
-      
-      setConversation(prev => [...prev, userMessage]);
-      setPrompt('');
+  try {
+    // Add user message to conversation
+    const userMessage = {
+      message: prompt,
+      isUser: true,
+      timestamp: new Date().toISOString()
+    };
+    
+    setConversation(prev => [...prev, userMessage]);
+    const currentPrompt = prompt;
+    setPrompt('');
 
-      let planData;
+    let response;
 
-      if (activeTrip) {
-        // Continue conversation - send message with plan_id
-        planData = {
-          message: prompt,
-          plan_id: activeTrip.id,
-          // Include conversation context for better responses
-          conversation_context: conversation.slice(-5).map(msg => ({
-            role: msg.isUser ? 'user' : 'assistant',
-            content: msg.message
-          }))
-        };
-      } else {
-        // Create new trip
-        const parsedDetails = parsePrompt(prompt);
-        planData = {
-          title: `${parsedDetails.duration}-Day Trip to ${parsedDetails.destination}`,
-          destination: parsedDetails.destination,
-          duration: parsedDetails.duration,
-          budget: parsedDetails.budget,
-          currency: parsedDetails.currency,
-          preferences: parsedDetails.preferences,
-          group_size: parsedDetails.group_size,
-          message: prompt
-        };
-      }
-
-      const response = await generateTravelPlan(planData);
+    if (activeTrip) {
+      // ✅ USE NEW CHAT ENDPOINT for existing plans
+      response = await makeAuthenticatedRequest(`/plans/chat/${activeTrip.id}?message=${encodeURIComponent(currentPrompt)}`, {
+        method: 'POST'
+      });
       
-      if (response) {
-        // Add AI response to conversation
-        const aiMessage = {
-          message: response.content || "I've processed your request!",
-          isUser: false,
-          timestamp: new Date().toISOString()
-        };
-        
-        setConversation(prev => [...prev, aiMessage]);
-        
-        if (!activeTrip && response.id) {
-          // This is a new trip - add to trips list
-          setTrips(prev => [response, ...prev]);
-          setActiveTrip(response);
-        } else if (activeTrip) {
-          // Update existing trip with new content
-          setActiveTrip(prev => ({
-            ...prev,
-            content: response.content || prev.content
-          }));
-        }
-      }
-    } catch (error) {
-      console.error('Error in handleSendMessage:', error);
+      const data = await response.json();
       
-      let errorMessage = "Sorry, I encountered an error. Please try again.";
-      
-      if (error.message.includes('Failed to fetch')) {
-        errorMessage = "Unable to connect to the server. Please check your internet connection.";
-      } else if (error.message.includes('Session expired')) {
-        errorMessage = "Your session has expired. Please log in again.";
-        navigate('/login');
-      } else {
-        errorMessage = error.message || "An unexpected error occurred.";
-      }
-      
-      alert(`Error: ${errorMessage}`);
-      
-      // Add error message to conversation
-      const errorMessageObj = {
-        message: errorMessage,
+      // Add AI response to conversation
+      const aiMessage = {
+        message: data.content || "I've updated your plan based on your request!",
         isUser: false,
         timestamp: new Date().toISOString()
       };
-      setConversation(prev => [...prev, errorMessageObj]);
-    } finally {
-      setIsGenerating(false);
+      
+      setConversation(prev => [...prev, aiMessage]);
+      
+      // Update active trip with new content
+      setActiveTrip(data);
+      
+    } else {
+      // Create new trip
+      const parsedDetails = parsePrompt(currentPrompt);
+      const planData = {
+        title: `${parsedDetails.duration}-Day Trip to ${parsedDetails.destination}`,
+        destination: parsedDetails.destination,
+        duration: parsedDetails.duration,
+        budget: parsedDetails.budget,
+        currency: parsedDetails.currency,
+        preferences: parsedDetails.preferences,
+        group_size: parsedDetails.group_size
+      };
+
+      response = await makeAuthenticatedRequest('/plans/generate', {
+        method: 'POST',
+        body: JSON.stringify(planData)
+      });
+      
+      const data = await response.json();
+      
+      // Add AI response
+      const aiMessage = {
+        message: data.content || "I've created your travel plan!",
+        isUser: false,
+        timestamp: new Date().toISOString()
+      };
+      
+      setConversation(prev => [...prev, aiMessage]);
+      
+      // Set as active trip
+      setActiveTrip(data);
+      
+      // Add to trips list
+      setTrips(prev => [data, ...prev]);
     }
-  };
+    
+  } catch (error) {
+    console.error('Error in handleSendMessage:', error);
+    
+    let errorMessage = "Sorry, I encountered an error. Please try again.";
+    
+    if (error.message.includes('Failed to fetch')) {
+      errorMessage = "Unable to connect to the server. Please check your internet connection.";
+    } else if (error.message.includes('Session expired')) {
+      errorMessage = "Your session has expired. Please log in again.";
+      navigate('/login');
+    } else {
+      errorMessage = error.message || "An unexpected error occurred.";
+    }
+    
+    alert(`Error: ${errorMessage}`);
+    
+    // Add error message to conversation
+    const errorMessageObj = {
+      message: errorMessage,
+      isUser: false,
+      timestamp: new Date().toISOString()
+    };
+    setConversation(prev => [...prev, errorMessageObj]);
+  } finally {
+    setIsGenerating(false);
+  }
+};
+
 
   const handleDeleteTrip = async (tripId, e) => {
     e.stopPropagation();
     if (window.confirm('Are you sure you want to delete this trip?')) {
       const success = await deleteTravelPlan(tripId);
       if (success) {
-        // Remove from trips
         setTrips(prev => prev.filter(trip => trip.id !== tripId));
-        
-        // Remove from pinned plans
         setPinnedPlans(prev => prev.filter(plan => plan.id !== tripId));
         
-        // Remove from localStorage
         const savedPinned = localStorage.getItem('pinnedPlans');
         if (savedPinned) {
           const pinnedIds = JSON.parse(savedPinned).filter(id => id !== tripId);
@@ -596,86 +596,83 @@ const CreateTrip = () => {
   // Loading state
   if (isLoading) {
     return (
-      <div className="loading-container">
-        <div className="loading-spinner-large"></div>
+      <div className="loading-container-ct">
+        <div className="loading-spinner-large-ct"></div>
         <p>Loading your travel plans...</p>
       </div>
     );
   }
 
   return (
-    <div className={`trip-planner ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
+    <div className={`trip-planner-ct ${sidebarOpen ? 'sidebar-open-ct' : 'sidebar-closed-ct'}`}>
       {/* Sidebar */}
-      <div className="sidebar">
-        <div className="sidebar-header">
+      <div className="sidebar-ct">
+        <div className="sidebar-header-ct">
           <button 
-            className="new-trip-btn"
+            className="new-trip-btn-ct"
             onClick={handleNewTrip}
           >
-            <FaPlane />
+            <HiSparkles />
             New Trip
           </button>
-          <div className="search-container">
+          <div className="search-container-ct">
             <input
               type="text"
               placeholder="Search trips..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
+              className="search-input-ct"
             />
-            <span className="search-icon">
+            <span className="search-icon-ct">
               <FaSearch />
             </span>
           </div>
         </div>
 
-        <div className="sidebar-content">
+        <div className="sidebar-content-ct">
           {/* Trip History */}
-          <div className="trip-history" style={{ 
-            flex: pinnedExpanded ? 0 : 1,
-            display: pinnedExpanded ? 'none' : 'block'
-          }}>
-            <h3 className="sidebar-section-title">
-              <FaChartBar />
+          <div className="trip-history-ct">
+            <h3 className="sidebar-section-title-ct">
+              <FaCompass />
               Recent Trips
             </h3>
-            <div className="trip-list">
+            <div className="trip-list-ct">
               {filteredTrips.length === 0 ? (
-                <div className="empty-state">
+                <div className="empty-state-ct">
                   <p>No trips yet</p>
-                  <p className="empty-subtitle">Create your first trip to get started!</p>
+                  <p className="empty-subtitle-ct">Create your first trip to get started!</p>
                 </div>
               ) : (
                 filteredTrips.map(trip => (
                   <div
                     key={trip.id}
-                    className={`trip-item ${activeTrip?.id === trip.id ? 'active' : ''}`}
+                    className={`trip-item-ct ${activeTrip?.id === trip.id ? 'active-ct' : ''}`}
                     onClick={() => handleTripClick(trip)}
                   >
-                    <div className="trip-item-header">
-                      <h4 className="trip-item-title">{trip.title}</h4>
+                    <div className="trip-item-header-ct">
+                      <h4 className="trip-item-title-ct">{trip.title}</h4>
                     </div>
-                    <p className="trip-item-preview">
+                    <p className="trip-item-preview-ct">
                       {trip.destination} • {trip.duration} days
                       {trip.budget && ` • ${trip.currency} ${trip.budget}`}
                     </p>
-                    <div className="trip-item-actions">
+                    <div className="trip-item-actions-ct">
                       <button 
-                        className={`action-btn pin-btn ${isPlanPinned(trip.id) ? 'pinned' : ''}`}
+                        className={`action-btn-ct pin-btn-ct ${isPlanPinned(trip.id) ? 'pinned-ct' : ''}`}
                         onClick={(e) => togglePinPlan(trip.id, e)}
                         title={isPlanPinned(trip.id) ? "Unpin plan" : "Pin plan"}
                       >
                         <FaThumbtack />
                       </button>
                       <button 
-                        className="action-btn share"
+                        className="action-btn-ct share-ct"
                         onClick={(e) => handleShareTrip(trip, e)}
                         title="Share"
                       >
                         <FaShare />
                       </button>
                       <button 
-                        className="action-btn delete"
+                        className="action-btn-ct delete-ct"
                         onClick={(e) => handleDeleteTrip(trip.id, e)}
                         title="Delete"
                       >
@@ -688,41 +685,41 @@ const CreateTrip = () => {
             </div>
           </div>
 
-          {/* Collapsible Pinned Section */}
-          <div className="pinned-section">
-            <div className="pinned-header" onClick={togglePinned}>
-              <h3 className="sidebar-section-title">
+          {/* Pinned Section */}
+          <div className="pinned-section-ct">
+            <div className="pinned-header-ct" onClick={togglePinned}>
+              <h3 className="sidebar-section-title-ct">
                 <FaThumbtack />
                 Pinned Plans
               </h3>
-              <button className="pinned-toggle">
+              <button className="pinned-toggle-ct">
                 <FaChevronDown style={{ 
                   transform: pinnedExpanded ? 'rotate(0deg)' : 'rotate(180deg)',
                   transition: 'transform 0.3s ease'
                 }} />
               </button>
             </div>
-            <div className={`pinned-content ${pinnedExpanded ? 'expanded' : 'collapsed'}`}>
-              <div className="pinned-list">
+            <div className={`pinned-content-ct ${pinnedExpanded ? 'expanded-ct' : 'collapsed-ct'}`}>
+              <div className="pinned-list-ct">
                 {filteredPinned.length === 0 ? (
-                  <div className="empty-state">
+                  <div className="empty-state-ct">
                     <p>No pinned plans yet</p>
-                    <p className="empty-subtitle">Click the pin icon on trips to pin them</p>
+                    <p className="empty-subtitle-ct">Click the pin icon on trips to pin them</p>
                   </div>
                 ) : (
                   filteredPinned.map(plan => (
                     <div
                       key={plan.id}
-                      className="trip-item pinned"
+                      className="trip-item-ct pinned-ct"
                       onClick={() => handleTripClick(plan)}
                     >
-                      <div className="trip-item-header">
-                        <h4 className="trip-item-title">{plan.title}</h4>
-                        <span className="pinned-indicator">
+                      <div className="trip-item-header-ct">
+                        <h4 className="trip-item-title-ct">{plan.title}</h4>
+                        <span className="pinned-indicator-ct">
                           <FaThumbtack />
                         </span>
                       </div>
-                      <p className="trip-item-preview">
+                      <p className="trip-item-preview-ct">
                         {plan.destination} • {plan.duration} days
                         {plan.budget && ` • ${plan.currency} ${plan.budget}`}
                       </p>
@@ -735,32 +732,32 @@ const CreateTrip = () => {
         </div>
 
         {/* User Profile Section */}
-        <div className="user-section">
-          <div className="user-info">
-            <div className="user-avatar">
+        <div className="user-section-ct">
+          <div className="user-info-ct">
+            <div className="user-avatar-ct">
               <FaUser />
             </div>
-            <div className="user-details">
-              <span className="username">{user?.username || 'Traveler'}</span>
-              <span className="user-email">{user?.email}</span>
+            <div className="user-details-ct">
+              <span className="username-ct">{user?.username || 'Traveler'}</span>
+              <span className="user-email-ct">{user?.email}</span>
             </div>
           </div>
-          <div className="user-menu">
-            <button className="menu-btn">
-              <RiUserSettingsLine />
+          <div className="user-menu-ct">
+            <button className="menu-btn-ct">
+              <FaCog />
             </button>
-            <div className="dropdown-menu">
+            <div className="dropdown-menu-ct">
               <button onClick={() => navigate('/dashboard')}>
                 <FaChartBar />
-                <span className="dropdown-text">Dashboard</span>
+                <span className="dropdown-text-ct">Dashboard</span>
               </button>
               <button>
                 <FaUser />
-                <span className="dropdown-text">Profile</span>
+                <span className="dropdown-text-ct">Profile</span>
               </button>
               <button>
                 <FaCog />
-                <span className="dropdown-text">Settings</span>
+                <span className="dropdown-text-ct">Settings</span>
               </button>
               <button onClick={() => {
                 localStorage.removeItem('token');
@@ -768,7 +765,7 @@ const CreateTrip = () => {
                 navigate('/');
               }}>
                 <FaSignOutAlt />
-                <span className="dropdown-text">Logout</span>
+                <span className="dropdown-text-ct">Logout</span>
               </button>
             </div>
           </div>
@@ -776,51 +773,50 @@ const CreateTrip = () => {
       </div>
 
       {/* Main Content */}
-      <div className="main-content">
-        <div className="content-header">
-          <div className="header-content">
-            <h1 className="page-title">
-              {activeTrip ? 'Travel Plan Chat' : 'AI Trip Planner'}
+      <div className="main-content-ct">
+        <div className="content-header-ct">
+          <div className="header-content-ct">
+            <h1 className="page-title-ct">
+              {activeTrip ? activeTrip.title : 'AI Trip Planner'}
             </h1>
             {user && (
-              <p className="welcome-text">
+              <p className="welcome-text-ct">
                 Welcome back, {user.username}! {activeTrip ? 'Continue planning your trip' : 'Describe your dream trip below'}
               </p>
             )}
           </div>
         </div>
 
-        <div className="chat-container">
+        <div className="chat-container-ct">
           {activeTrip ? (
-            <div className="trip-details">
-              {/* FIXED HEADER - Stays at top while chat scrolls */}
-              <div className="chat-header-fixed">
-                <div className="chat-header-content">
-                  <div className="chat-title-section">
-                    <h2>{activeTrip.title}</h2>
-                    <div className="chat-meta">
-                      {activeTrip.budget && (
-                        <span className="chat-budget">{activeTrip.currency} {activeTrip.budget}</span>
-                      )}
-                    </div>
+            <div className="trip-details-ct">
+              {/* Trip Meta Information */}
+              <div className="trip-meta-info-ct">
+                <div className="meta-item-ct">
+                  <FaMapMarkerAlt className="meta-icon-ct" />
+                  <span>{activeTrip.destination}</span>
+                </div>
+                <div className="meta-item-ct">
+                  <FaCalendarAlt className="meta-icon-ct" />
+                  <span>{activeTrip.duration} days</span>
+                </div>
+                {activeTrip.budget && (
+                  <div className="meta-item-ct">
+                    <FaMoneyBillWave className="meta-icon-ct" />
+                    <span>{activeTrip.currency} {activeTrip.budget}</span>
                   </div>
-                  <div className="chat-actions-fixed">
-                    <button 
-                      className={`action-btn pin-btn ${isPlanPinned(activeTrip.id) ? 'pinned' : ''}`}
-                      onClick={(e) => togglePinPlan(activeTrip.id, e)}
-                      title={isPlanPinned(activeTrip.id) ? "Unpin plan" : "Pin plan"}
-                    >
-                      <FaThumbtack />
-                    </button>
-                  </div>
+                )}
+                <div className="meta-item-ct">
+                  <FaUsers className="meta-icon-ct" />
+                  <span>{activeTrip.group_size || 1} traveler(s)</span>
                 </div>
               </div>
               
-              {/* Chat Interface - Scrolls independently */}
-              <div className="chat-interface" ref={chatContainerRef}>
-                <div className="chat-messages">
+              {/* Chat Interface */}
+              <div className="chat-interface-ct" ref={chatContainerRef}>
+                <div className="chat-messages-ct">
                   {conversation.length === 0 ? (
-                    <div className="no-conversation">
+                    <div className="no-conversation-ct">
                       <p>Start a conversation about your trip!</p>
                       <p>Ask questions like:</p>
                       <ul>
@@ -841,12 +837,12 @@ const CreateTrip = () => {
                     ))
                   )}
                   {isGenerating && (
-                    <div className="chat-message ai-message">
-                      <div className="message-avatar">
-                        <FaPlane />
+                    <div className="chat-message-ct ai-message-ct">
+                      <div className="message-avatar-ct">
+                        <HiSparkles />
                       </div>
-                      <div className="message-content">
-                        <div className="loading-dots">
+                      <div className="message-content-ct">
+                        <div className="loading-dots-ct">
                           <span></span>
                           <span></span>
                           <span></span>
@@ -858,22 +854,25 @@ const CreateTrip = () => {
               </div>
             </div>
           ) : (
-            <div className="welcome-message">
-              <div className="welcome-icon">
-                <FaPlane />
+            <div className="welcome-message-ct">
+              <div className="welcome-icon-ct">
+                <HiSparkles />
               </div>
-              <h2>Welcome to AI Trip Planner</h2>
+              <h2>Plan Your Perfect Journey</h2>
               <p>Describe your dream trip and let AI create a personalized itinerary for you!</p>
-              <div className="example-prompts">
+              <div className="example-prompts-ct">
                 <h4>Try these examples:</h4>
-                <div className="prompt-examples">
+                <div className="prompt-examples-ct">
                   <button onClick={() => setPrompt("Plan a 7-day romantic getaway to Paris with budget under $3000")}>
+                    <FaCompass />
                     Romantic Paris getaway
                   </button>
                   <button onClick={() => setPrompt("Create a 10-day family adventure in Thailand with kids aged 8 and 12")}>
+                    <FaCompass />
                     Thailand family adventure
                   </button>
                   <button onClick={() => setPrompt("Design a 5-day solo backpacking trip through Japan's temples")}>
+                    <FaCompass />
                     Japan solo backpacking
                   </button>
                 </div>
@@ -882,8 +881,8 @@ const CreateTrip = () => {
           )}
 
           {/* Input Area */}
-          <div className="input-container">
-            <div className="input-wrapper">
+          <div className="input-container-ct">
+            <div className="input-wrapper-ct">
               <textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
@@ -892,7 +891,7 @@ const CreateTrip = () => {
                     ? "Ask questions or request changes to your trip plan..." 
                     : "E.g., Plan a 7-day beach vacation in Bali for 2 people with $2000 budget"
                 }
-                className="prompt-input"
+                className="prompt-input-ct"
                 rows="3"
                 disabled={isGenerating}
                 onKeyPress={(e) => {
@@ -905,17 +904,17 @@ const CreateTrip = () => {
               <button
                 onClick={handleSendMessage}
                 disabled={!prompt.trim() || isGenerating}
-                className="send-btn"
+                className="send-btn-ct"
               >
                 {isGenerating ? (
-                  <div className="loading-spinner"></div>
+                  <div className="loading-spinner-ct"></div>
                 ) : (
                   <FaPaperPlane />
                 )}
               </button>
             </div>
-            <div className="input-footer">
-              <span className="tip-text">
+            <div className="input-footer-ct">
+              <span className="tip-text-ct">
                 <FaBolt />
                 {activeTrip 
                   ? "Continue the conversation to refine your travel plan"

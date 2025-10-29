@@ -506,6 +506,13 @@
   font-size: 0.8rem;
 }
 
+.map-button-container-ct {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin-left: auto;
+}
+
 /* Chat Interface Styles */
 .chat-interface-ct {
   height: 400px;

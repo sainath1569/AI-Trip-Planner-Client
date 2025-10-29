@@ -27,6 +27,7 @@ function App() {
           {/* Protected Routes - User */}
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/planner" element={<CreateTrip />} />
+          <Route path="/create-trip" element={<CreateTrip />} />
           
           {/* Protected Routes - Admin */}
           {/* <Route path="/admin" element={<AdminPanel />} /> */}

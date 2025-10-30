@@ -43,7 +43,8 @@ function LoginComponent() {
 
       const data = await response.json();
 
-      if (response.ok) {
+        if (response.ok) {
+        // Save returned user info
         localStorage.setItem("token", data.access_token);
         localStorage.setItem("email", data.email);
         localStorage.setItem("username", data.username);
@@ -52,7 +53,12 @@ function LoginComponent() {
         }
 
         await Swal.fire("Login Successful!", `Welcome back, ${data.username}!`, "success");
-        navigate("/planner");
+        // If this is the admin user, send them to the admin dashboard
+        if (data.email && data.email.toLowerCase() === "admin@gmail.com") {
+          navigate("/admin-dashboard");
+        } else {
+          navigate("/planner");
+        }
       } else {
         Swal.fire("Login Failed", data.detail || "Invalid credentials", "error");
       }
@@ -88,6 +94,7 @@ function LoginComponent() {
       const data = await response.json();
 
       if (response.ok) {
+        // Save returned user info
         localStorage.setItem("token", data.access_token);
         localStorage.setItem("email", data.email);
         localStorage.setItem("username", data.username);
@@ -96,7 +103,14 @@ function LoginComponent() {
         }
 
         await Swal.fire("Login Successful!", `Welcome to AI Trip Planner, ${data.username}!`, "success");
-        navigate("/planner");
+        // If this is the admin user, send them to the admin dashboard
+        // Use the email returned by the backend (data.email). Fallback to the decoded email if needed.
+        const returnedEmail = data.email || email;
+        if (returnedEmail && returnedEmail.toLowerCase() === "admin@gmail.com") {
+          navigate("/admin-dashboard");
+        } else {
+          navigate("/planner");
+        }
       } else {
         Swal.fire("Google Login Failed", data.detail || "Unable to login with Google", "error");
       }

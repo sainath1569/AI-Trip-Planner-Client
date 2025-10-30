@@ -341,18 +341,18 @@
   box-shadow: 0 3px 10px rgba(245, 158, 11, 0.3);
 }
 
-.user-details-ct {
+.user-details-ct1 {
   display: flex;
   flex-direction: column;
 }
 
-.username-ct {
+.username-ct1 {
   font-size: 0.9rem;
   font-weight: 600;
   color: #ffffff;
 }
 
-.user-email-ct {
+.user-email-ct1 {
   font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.7);
 }

@@ -1,4 +1,3 @@
-// src/pages/Dashboard/Dashboard.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -8,13 +7,36 @@ import {
   FaCloud,
   FaMoneyBillWave,
   FaSync,
-  FaCompass,
   FaMapMarkerAlt,
   FaCalendarAlt,
-  FaStar
+  FaStar,
+  FaSearch
 } from 'react-icons/fa';
 import { GiPalmTree } from 'react-icons/gi';
 import '../styles/Dashboard.css';
+
+const getDayTempRange = (forecasts) => {
+  if (!forecasts || forecasts.length === 0) return 'N/A';
+  const temps = forecasts.map(f => f.temperature);
+  const max = Math.max(...temps);
+  const min = Math.min(...temps);
+  return `${Math.round(min)}° / ${Math.round(max)}°`;
+};
+
+const getDayCondition = (forecasts) => {
+  if (!forecasts || forecasts.length === 0) return 'N/A';
+  
+  // Count condition frequencies
+  const conditionCount = {};
+  forecasts.forEach(f => {
+    conditionCount[f.condition] = (conditionCount[f.condition] || 0) + 1;
+  });
+  
+  // Return most frequent condition
+  return Object.keys(conditionCount).reduce((a, b) => 
+    conditionCount[a] > conditionCount[b] ? a : b
+  );
+};
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -25,6 +47,7 @@ const Dashboard = () => {
   });
   const [recentTrips, setRecentTrips] = useState([]);
   const [weatherData, setWeatherData] = useState(null);
+  const [forecastData, setForecastData] = useState(null);
   const [currencyRates, setCurrencyRates] = useState(null);
   const [converter, setConverter] = useState({
     amount: 1,
@@ -33,16 +56,17 @@ const Dashboard = () => {
     result: 0
   });
   const [loading, setLoading] = useState(true);
-  const [userLocation, setUserLocation] = useState('Kolkata');
+  const [userLocation, setUserLocation] = useState('Andhra Pradesh');
+  const [locationInput, setLocationInput] = useState('Andhra Pradesh');
+  const [weatherLoading, setWeatherLoading] = useState(false);
 
   const API_BASE = 'http://127.0.0.1:8000';
 
-  // Get auth token from localStorage
+  // API Service Functions
   const getAuthToken = () => {
     return localStorage.getItem('token') || localStorage.getItem('access_token');
   };
 
-  // FIXED: Enhanced API call function - only add auth when needed
   const makeAuthenticatedRequest = async (endpoint, options = {}, requiresAuth = true) => {
     const token = getAuthToken();
     
@@ -54,18 +78,13 @@ const Dashboard = () => {
       },
     };
 
-    // Only add Authorization header if endpoint requires auth AND token exists
-    if (requiresAuth) {
-      if (!token) {
-        throw new Error('No authentication token found. Please log in again.');
-      }
+    if (requiresAuth && token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
 
     try {
       const response = await fetch(`${API_BASE}${endpoint}`, config);
       
-      // Only handle 401 for authenticated requests
       if (requiresAuth && response.status === 401) {
         localStorage.removeItem('token');
         localStorage.removeItem('access_token');
@@ -73,8 +92,6 @@ const Dashboard = () => {
       }
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`API Error (${response.status}):`, errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -85,7 +102,6 @@ const Dashboard = () => {
     }
   };
 
-  // FIXED: Make unauthenticated requests for public endpoints
   const makePublicRequest = async (endpoint, options = {}) => {
     const config = {
       ...options,
@@ -99,8 +115,6 @@ const Dashboard = () => {
       const response = await fetch(`${API_BASE}${endpoint}`, config);
       
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`API Error (${response.status}):`, errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -111,7 +125,7 @@ const Dashboard = () => {
     }
   };
 
-  // Popular currencies array
+  // Popular currencies
   const popularCurrencies = [
     { code: 'USD', name: 'US Dollar', country: 'United States' },
     { code: 'EUR', name: 'Euro', country: 'European Union' },
@@ -125,50 +139,20 @@ const Dashboard = () => {
     { code: 'SGD', name: 'Singapore Dollar', country: 'Singapore' }
   ];
 
+  // Effects
   useEffect(() => {
-    fetchUserLocation();
     fetchUserData();
     fetchDashboardData();
     fetchCurrencyRates();
+    // Fetch Andhra Pradesh weather by default
+    fetchWeatherData('Andhra Pradesh');
   }, []);
 
-  // Fetch user's location
-  const fetchUserLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          try {
-            const { latitude, longitude } = position.coords;
-            const response = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
-            );
-            const data = await response.json();
-            const city = data.address.city || data.address.town || data.address.village || 'Kolkata';
-            setUserLocation(city);
-            fetchWeatherData(city);
-          } catch (error) {
-            console.error('Error fetching location:', error);
-            setUserLocation('Kolkata');
-            fetchWeatherData('Kolkata');
-          }
-        },
-        (error) => {
-          console.error('Geolocation error:', error);
-          setUserLocation('Kolkata');
-          fetchWeatherData('Kolkata');
-        }
-      );
-    } else {
-      setUserLocation('Kolkata');
-      fetchWeatherData('Kolkata');
-    }
-  };
-
+  // Data Fetching Functions
   const fetchUserData = async () => {
     try {
       const token = getAuthToken();
       if (!token) {
-        console.warn('No token found, user data will be limited');
         const userData = {
           username: 'Traveler',
           email: ''
@@ -183,7 +167,6 @@ const Dashboard = () => {
       };
       setUser(userData);
 
-      // Fetch user stats with proper error handling
       try {
         const statsResponse = await makeAuthenticatedRequest('/users/me/stats');
         const userStats = await statsResponse.json();
@@ -192,192 +175,122 @@ const Dashboard = () => {
           apiUsage: userStats.total_queries || 0
         });
       } catch (error) {
-        console.warn('Stats endpoint not available, using mock data:', error);
-        setStats({
-          totalPlans: 5,
-          apiUsage: 85
-        });
+        console.warn('Stats endpoint not available');
+        setStats({ totalPlans: 0, apiUsage: 0 });
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
-      // Don't navigate to login for user data errors
-      if (error.message.includes('Session expired')) {
-        console.warn('Session expired, continuing with limited functionality');
-      }
     }
   };
 
   const fetchDashboardData = async () => {
     try {
-      // Fetch recent trips
+      // Fetch recent trips from user history
       try {
         const historyResponse = await makeAuthenticatedRequest('/users/me/history?limit=6');
         const queries = await historyResponse.json();
-        const formattedTrips = queries.map((query, index) => ({
-          id: query.id || index,
-          title: query.query_text?.substring(0, 30) + (query.query_text?.length > 30 ? '...' : '') || `Trip ${index + 1}`,
-          date: new Date(query.created_at).toLocaleDateString(),
-          location: ['Bali, Indonesia', 'Tokyo, Japan', 'Paris, France', 'New York, USA', 'Sydney, Australia', 'Dubai, UAE'][index % 6],
-          type: ['beach', 'mountain', 'city', 'cultural', 'adventure', 'luxury'][index % 6],
-          favorite: Math.random() > 0.7
-        }));
-        setRecentTrips(formattedTrips);
+        
+        if (queries && queries.length > 0) {
+          const formattedTrips = queries.map((query, index) => ({
+            id: query.id || index,
+            title: query.query_text?.substring(0, 30) + (query.query_text?.length > 30 ? '...' : '') || `Trip ${index + 1}`,
+            date: new Date(query.created_at).toLocaleDateString(),
+            location: query.destination || 'Unknown Location',
+            type: query.trip_type || 'TRIP',
+            favorite: query.favorite || false
+          }));
+          setRecentTrips(formattedTrips);
+        } else {
+          setRecentTrips([]);
+        }
       } catch (error) {
-        console.warn('History endpoint not available, using mock data:', error);
-        const mockTrips = [
-          { id: 1, title: 'Bali Beach Vacation', date: '2024-01-15', location: 'Bali, Indonesia', type: 'beach', favorite: true },
-          { id: 2, title: 'Tokyo City Exploration', date: '2024-01-10', location: 'Tokyo, Japan', type: 'city', favorite: false },
-          { id: 3, title: 'Paris Cultural Tour', date: '2024-01-05', location: 'Paris, France', type: 'cultural', favorite: true },
-        ];
-        setRecentTrips(mockTrips);
+        console.warn('History endpoint not available');
+        setRecentTrips([]);
       }
 
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      setRecentTrips([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Debug function to see what the API is actually returning
-  const debugWeatherResponse = (response) => {
-    console.log('=== WEATHER API DEBUG INFO ===');
-    console.log('Full response:', response);
-    console.log('Current weather object:', response.current_weather);
-    console.log('Description:', response.current_weather?.description);
-    console.log('Forecast:', response.forecast);
-    console.log('City:', response.city);
-    console.log('=== END DEBUG INFO ===');
-  };
-
-  // FIXED: Use public request for weather (no auth required)
-  const fetchWeatherData = async (city = userLocation) => {
+  // Weather Functions
+  const fetchWeatherData = async (city) => {
+    if (!city) return;
+    
+    setWeatherLoading(true);
     try {
-      console.log('Fetching weather for:', city);
-      
+      // Fetch current weather
       const response = await makePublicRequest('/weather/current', {
         method: 'POST',
         body: JSON.stringify({ city })
       });
 
       const weather = await response.json();
-      
-      // Debug the actual response
-      debugWeatherResponse(weather);
-      
-      // Process the weather response with better temperature handling
       const processedWeather = processWeatherResponse(weather, city);
       setWeatherData(processedWeather);
       
+      // Fetch forecast data
+      await fetchForecastData(city);
+      
     } catch (error) {
       console.error('Error fetching weather data:', error);
-      // Use mock data as fallback
       const mockWeather = generateMockWeather(city);
       setWeatherData(mockWeather);
+      setForecastData(generateMockForecast(city));
+    } finally {
+      setWeatherLoading(false);
     }
   };
 
-  // Improved weather response processing
-  const processWeatherResponse = (weatherResponse, city) => {
-    const description = weatherResponse.current_weather?.description || '';
-    
-    // Extract temperature with multiple fallback methods
-    let temperature = extractTemperatureFromDescription(description);
-    
-    // If temperature is unrealistic (like 305°C), use fallback
-    if (temperature > 60 || temperature < -50) {
-      console.warn('Unrealistic temperature detected, using fallback:', temperature);
-      temperature = extractRealisticTemperature(description) || 25;
+  const fetchForecastData = async (city) => {
+    try {
+      const response = await makePublicRequest(`/weather/forecast/${city}`);
+      const forecast = await response.json();
+      setForecastData(processForecastResponse(forecast));
+    } catch (error) {
+      console.error('Error fetching forecast data:', error);
+      setForecastData(generateMockForecast(city));
     }
-    
-    const condition = extractWeatherCondition(description);
+  };
+
+  const processWeatherResponse = (weatherResponse, city) => {
+    const rawDescription = weatherResponse.current_weather?.description;
+    const temperature = extractTemperature(rawDescription);
+    const condition = extractWeatherCondition(rawDescription);
     const icon = getWeatherIcon(condition);
 
     return {
       city: city,
       current_weather: {
-        description: description,
+        description: rawDescription,
         condition: condition,
         temperature: temperature,
-        icon: icon
-      }
+        icon: icon,
+        raw_data: weatherResponse.current_weather?.raw_data
+      },
+      timestamp: weatherResponse.timestamp
     };
   };
 
-  // Improved temperature extraction
-  const extractTemperatureFromDescription = (description) => {
-    if (!description) return 25;
-    
-    // First check if it's Kelvin (temperatures around 270-310)
-    const kelvinMatch = description.match(/\b(\d{3})\b/);
-    if (kelvinMatch) {
-      const kelvinTemp = parseInt(kelvinMatch[1]);
-      if (kelvinTemp > 250 && kelvinTemp < 320) {
-        // Convert Kelvin to Celsius: K - 273.15
-        const celsiusTemp = Math.round(kelvinTemp - 273.15);
-        console.log(`Converted ${kelvinTemp}K to ${celsiusTemp}°C`);
-        return celsiusTemp;
-      }
-    }
-    
-    // Try multiple patterns to extract temperature
-    const patterns = [
-      /\b(\d+)\s*°?C\b/i,        // 25°C or 25 C
-      /\b(\d+)\s*degrees?\b/i,    // 25 degrees
-      /temperature[^\d]*(\d+)/i,  // temperature: 25
-      /\b(\d+)\s*F\b/i,          // 77F (Fahrenheit)
-    ];
-    
-    for (const pattern of patterns) {
-      const match = description.match(pattern);
-      if (match) {
-        let temp = parseInt(match[1]);
-        
-        // Convert Fahrenheit to Celsius if needed
-        if (pattern.toString().includes('F') && temp > 50) {
-          temp = Math.round((temp - 32) * 5/9);
-        }
-        
-        return temp;
-      }
-    }
-    
-    // Fallback: look for any number that could be a reasonable temperature
-    const numberMatches = description.match(/\b(\d{1,2})\b/g);
-    if (numberMatches) {
-      const possibleTemps = numberMatches.map(Number).filter(temp => 
-        temp >= -20 && temp <= 50
-      );
-      if (possibleTemps.length > 0) {
-        return possibleTemps[0];
-      }
-    }
-    
-    return 25; // Default fallback
+  const processForecastResponse = (forecastResponse) => {
+    const forecastText = forecastResponse.forecast;
+    return parseForecastData(forecastText, forecastResponse.city);
   };
 
-  // Additional fallback for unrealistic temperatures
-  const extractRealisticTemperature = (description) => {
-    if (!description) return 25;
+  const extractTemperature = (description) => {
+    if (!description) return 20;
     
-    // Look for temperature patterns that might be in different formats
-    const patterns = [
-      /(\d{1,2})°?C/i,           // 25C or 25°C
-      /(\d{1,2})\s*celsius/i,     // 25 celsius
-      /temp[^\d]*(\d{1,2})/i,     // temp 25
-    ];
-    
-    for (const pattern of patterns) {
-      const match = description.match(pattern);
-      if (match) {
-        const temp = parseInt(match[1]);
-        if (temp >= -20 && temp <= 50) {
-          return temp;
-        }
-      }
+    // Try to extract temperature from description like "13.8°C"
+    const tempMatch = description.match(/(\d+\.?\d*)°C/);
+    if (tempMatch) {
+      return parseFloat(tempMatch[1]);
     }
     
-    return null;
+    // Fallback: generate reasonable temperature based on city
+    return Math.floor(Math.random() * 30) + 10; // 10-40°C
   };
 
   const extractWeatherCondition = (description) => {
@@ -395,6 +308,56 @@ const Dashboard = () => {
     return 'Clear';
   };
 
+  const parseForecastData = (forecastText, city) => {
+    if (!forecastText) return null;
+    
+    const days = [];
+    const lines = forecastText.split('\n');
+    let currentDay = null;
+    
+    lines.forEach(line => {
+      line = line.trim();
+      
+      // Check for day header like "**2025-10-29**"
+      const dayMatch = line.match(/\*\*(\d{4}-\d{2}-\d{2})\*\*/);
+      if (dayMatch) {
+        if (currentDay) {
+          days.push(currentDay);
+        }
+        currentDay = {
+          date: dayMatch[1],
+          forecasts: []
+        };
+      }
+      
+      // Parse time entries like "18:00:00: 13.8°C, moderate rain"
+      if (currentDay && line.includes(':')) {
+        const timeMatch = line.match(/(\d{2}:\d{2}:\d{2}):\s*([^,]+),\s*(.+)/);
+        if (timeMatch) {
+          const [_, time, tempStr, condition] = timeMatch;
+          const tempMatch = tempStr.match(/(\d+\.?\d*)°C/);
+          
+          currentDay.forecasts.push({
+            time: time,
+            temperature: tempMatch ? parseFloat(tempMatch[1]) : 20,
+            condition: condition.trim(),
+            icon: getWeatherIcon(condition)
+          });
+        }
+      }
+    });
+    
+    if (currentDay) {
+      days.push(currentDay);
+    }
+    
+    return {
+      city: city,
+      days: days.slice(0, 2), // Only take 2 days max
+      raw_data: forecastText
+    };
+  };
+
   const getWeatherIcon = (condition) => {
     const icons = {
       'Sunny': '☀️',
@@ -404,44 +367,39 @@ const Dashboard = () => {
       'Thunderstorm': '⛈️',
       'Foggy': '🌫️',
       'Windy': '💨',
-      'Clear': '☀️'
+      'Clear': '☀️',
+      'moderate rain': '🌧️',
+      'light rain': '🌦️',
+      'overcast clouds': '☁️',
+      'scattered clouds': '⛅',
+      'broken clouds': '☁️'
     };
-    return icons[condition] || '☀️';
+    
+    const conditionLower = condition.toLowerCase();
+    for (const [key, icon] of Object.entries(icons)) {
+      if (conditionLower.includes(key.toLowerCase())) {
+        return icon;
+      }
+    }
+    
+    return '☀️';
   };
 
+  // Currency Functions
   const fetchCurrencyRates = async (baseCurrency = 'INR') => {
     try {
       const response = await makePublicRequest(`/currency/rates/${baseCurrency}`);
-      
       const ratesData = await response.json();
-      console.log('Currency Rates API Response:', ratesData);
-      
       setCurrencyRates(ratesData);
-      
     } catch (error) {
       console.error('Error fetching currency rates:', error);
-      // Use mock rates as fallback
       const mockRates = generateMockRates(baseCurrency);
       setCurrencyRates(mockRates);
     }
   };
 
-  // Mock exchange rates for fallback
-  const getMockExchangeRate = (from, to) => {
-    const rates = {
-      USD: { EUR: 0.85, GBP: 0.73, JPY: 110.5, INR: 74.5, CAD: 1.25, AUD: 1.35, CHF: 0.92, CNY: 6.45, SGD: 1.34 },
-      EUR: { USD: 1.18, GBP: 0.86, JPY: 130.0, INR: 87.5, CAD: 1.47, AUD: 1.59, CHF: 1.08, CNY: 7.59, SGD: 1.58 },
-      // Add more rates as needed
-    };
-    
-    return rates[from]?.[to] || 1;
-  };
-
-  // FIXED: Use public request for currency conversion (no auth required)
   const handleCurrencyConvert = async () => {
     try {
-      console.log('Converting currency:', converter);
-      
       const response = await makePublicRequest('/currency/convert', {
         method: 'POST',
         body: JSON.stringify({
@@ -452,8 +410,6 @@ const Dashboard = () => {
       });
 
       const result = await response.json();
-      console.log('Currency Conversion API Response:', result);
-      
       setConverter(prev => ({
         ...prev,
         result: result.converted_amount || 0
@@ -461,7 +417,6 @@ const Dashboard = () => {
       
     } catch (error) {
       console.error('Error converting currency:', error);
-      // Use mock conversion as fallback
       const mockRate = getMockExchangeRate(converter.from, converter.to);
       setConverter(prev => ({
         ...prev,
@@ -470,8 +425,50 @@ const Dashboard = () => {
     }
   };
 
-  // Helper functions for mock data (keep as fallback)
+  // Event Handlers
+  const handleGetWeather = () => {
+    if (locationInput.trim()) {
+      const city = locationInput.trim();
+      setUserLocation(city);
+      fetchWeatherData(city);
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleGetWeather();
+    }
+  };
+
+  const handleCreateNewTrip = () => {
+    navigate('/planner');
+  };
+
+  const handleTripClick = (tripId) => {
+    navigate(`/planner?trip=${tripId}`);
+  };
+
+  const handleRefreshWeather = () => {
+    if (userLocation) {
+      fetchWeatherData(userLocation);
+    }
+  };
+
+  // Mock Data Generators (Fallback)
   const generateMockWeather = (city) => {
+    // Special case for Andhra Pradesh - typical weather
+    if (city.toLowerCase().includes('andhra')) {
+      return {
+        city: city,
+        current_weather: { 
+          description: 'Sunny, 32°C',
+          condition: 'Sunny',
+          temperature: 32,
+          icon: '☀️'
+        }
+      };
+    }
+
     const weatherConditions = [
       { condition: 'Sunny', temp: 28, icon: '☀️' },
       { condition: 'Partly Cloudy', temp: 24, icon: '⛅' },
@@ -489,6 +486,76 @@ const Dashboard = () => {
         temperature: randomWeather.temp,
         icon: randomWeather.icon
       }
+    };
+  };
+
+  const generateMockForecast = (city) => {
+    const days = [];
+    const conditions = ['Sunny', 'Cloudy', 'Rainy', 'Partly Cloudy'];
+    
+    // Special case for Andhra Pradesh - typical forecast
+    if (city.toLowerCase().includes('andhra')) {
+      for (let i = 0; i < 2; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() + i);
+        
+        const day = {
+          date: date.toISOString().split('T')[0],
+          forecasts: []
+        };
+        
+        // Add time entries per day with Andhra Pradesh typical weather
+        const times = ['06:00:00', '12:00:00', '18:00:00', '21:00:00'];
+        for (const time of times) {
+          // Andhra Pradesh typically has warm weather
+          const baseTemp = 30 + Math.floor(Math.random() * 8) - 4; // 26-34°C
+          const condition = i === 0 ? 'Sunny' : conditions[Math.floor(Math.random() * 2)]; // More likely sunny
+          
+          day.forecasts.push({
+            time: time,
+            temperature: baseTemp,
+            condition: condition,
+            icon: getWeatherIcon(condition)
+          });
+        }
+        
+        days.push(day);
+      }
+      
+      return {
+        city: city,
+        days: days
+      };
+    }
+
+    // Default mock forecast for other cities
+    for (let i = 0; i < 2; i++) {
+      const date = new Date();
+      date.setDate(date.getDate() + i);
+      
+      const day = {
+        date: date.toISOString().split('T')[0],
+        forecasts: []
+      };
+      
+      // Add time entries per day
+      const times = ['06:00:00', '12:00:00', '18:00:00', '21:00:00'];
+      for (const time of times) {
+        const condition = conditions[Math.floor(Math.random() * conditions.length)];
+        day.forecasts.push({
+          time: time,
+          temperature: Math.floor(Math.random() * 25) + 10,
+          condition: condition,
+          icon: getWeatherIcon(condition)
+        });
+      }
+      
+      days.push(day);
+    }
+    
+    return {
+      city: city,
+      days: days
     };
   };
 
@@ -513,19 +580,15 @@ const Dashboard = () => {
     };
   };
 
-  const handleCreateNewTrip = () => {
-    navigate('/planner');
+  const getMockExchangeRate = (from, to) => {
+    const rates = {
+      USD: { EUR: 0.85, GBP: 0.73, JPY: 110.5, INR: 74.5, CAD: 1.25, AUD: 1.35, CHF: 0.92, CNY: 6.45, SGD: 1.34 },
+      EUR: { USD: 1.18, GBP: 0.86, JPY: 130.0, INR: 87.5, CAD: 1.47, AUD: 1.59, CHF: 1.08, CNY: 7.59, SGD: 1.58 },
+    };
+    return rates[from]?.[to] || 1;
   };
 
-  const handleTripClick = (tripId) => {
-    navigate(`/planner?trip=${tripId}`);
-  };
-
-  const handleRefreshWeather = () => {
-    fetchWeatherData(userLocation);
-  };
-
-  // Update converter when amount or currencies change
+  // Auto-update converter when inputs change
   useEffect(() => {
     if (currencyRates && currencyRates.rates && currencyRates.rates[converter.to]) {
       const rate = currencyRates.rates[converter.to];
@@ -577,30 +640,33 @@ const Dashboard = () => {
       <div className="dashboard-content-db">
         {/* Stats & Tools Section */}
         <div className="dashboard-grid-db">
-          {/* Stats Section */}
+          {/* Left Section - Weather */}
           <div className="dashboard-section-db">
             <div className="stats-container-db">
-              <div className="stat-card-db">
-                <div className="stat-icon-wrapper-db">
-                  <FaChartBar className="stat-icon-db" />
+              {/* Stats Row */}
+              <div className="stats-row-db">
+                <div className="stat-card-db">
+                  <div className="stat-icon-wrapper-db">
+                    <FaChartBar className="stat-icon-db" />
+                  </div>
+                  <div className="stat-content-db">
+                    <h3>{stats.totalPlans}</h3>
+                    <p>Plans Created</p>
+                  </div>
                 </div>
-                <div className="stat-content-db">
-                  <h3>{stats.totalPlans}</h3>
-                  <p>Plans Created</p>
-                </div>
-              </div>
-              <div className="stat-card-db">
-                <div className="stat-icon-wrapper-db">
-                  <FaBolt className="stat-icon-db" />
-                </div>
-                <div className="stat-content-db">
-                  <h3>{stats.apiUsage}%</h3>
-                  <p>API Usage</p>
-                  <div className="usage-bar-db">
-                    <div 
-                      className="usage-progress-db" 
-                      style={{ width: `${stats.apiUsage}%` }}
-                    ></div>
+                <div className="stat-card-db">
+                  <div className="stat-icon-wrapper-db">
+                    <FaBolt className="stat-icon-db" />
+                  </div>
+                  <div className="stat-content-db">
+                    <h3>{stats.apiUsage}%</h3>
+                    <p>API Usage</p>
+                    <div className="usage-bar-db">
+                      <div 
+                        className="usage-progress-db" 
+                        style={{ width: `${stats.apiUsage}%` }}
+                      ></div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -613,40 +679,110 @@ const Dashboard = () => {
                   <button 
                     className="refresh-btn-db"
                     onClick={handleRefreshWeather}
+                    disabled={!userLocation || weatherLoading}
                   >
-                    <FaSync />
+                    <FaSync className={weatherLoading ? 'spinning' : ''} />
                   </button>
                 </div>
                 <div className="tool-content-db">
-                  {weatherData ? (
+                  {/* Location Search Input */}
+                  <div className="location-search-db">
+                    <div className="search-input-container-db">
+                      <FaMapMarkerAlt className="search-icon-db" />
+                      <input
+                        type="text"
+                        value={locationInput}
+                        onChange={(e) => setLocationInput(e.target.value)}
+                        onKeyPress={handleKeyPress}
+                        placeholder="Enter city name..."
+                        className="location-input-db"
+                      />
+                      <button 
+                        className="get-weather-btn-db"
+                        onClick={handleGetWeather}
+                        disabled={!locationInput.trim() || weatherLoading}
+                      >
+                        {weatherLoading ? 'Loading...' : 'Get Weather'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {weatherLoading ? (
+                    <div className="weather-loading-db">
+                      <div className="loading-spinner-small-db"></div>
+                      <p>Fetching weather data...</p>
+                    </div>
+                  ) : weatherData && userLocation ? (
                     <div className="weather-info-db">
-                      <div className="weather-location-db">
-                        <FaMapMarkerAlt className="location-icon-db" />
-                        <span>{weatherData.city}</span>
-                      </div>
-                      <div className="weather-main-db">
-                        <div className="weather-icon-db">
-                          {weatherData.current_weather?.icon || '☀️'}
+                      {/* Current Weather */}
+                      <div className="current-weather-db">
+                        <div className="weather-location-db">
+                          <FaMapMarkerAlt className="location-icon-db" />
+                          <span>{weatherData.city}</span>
                         </div>
-                        <div className="weather-details-db">
-                          <div className="weather-temp-db">
-                            {weatherData.current_weather?.temperature || '24'}°C
+                        <div className="weather-main-db">
+                          <div className="weather-icon-db large">
+                            {weatherData.current_weather?.icon || '☀️'}
                           </div>
-                          <div className="weather-desc-db">
-                            {weatherData.current_weather?.condition || 'Sunny'}
+                          <div className="weather-details-db">
+                            <div className="weather-temp-db">
+                              {weatherData.current_weather?.temperature || '24'}°C
+                            </div>
+                            <div className="weather-desc-db">
+                              {weatherData.current_weather?.condition || 'Sunny'}
+                            </div>
                           </div>
                         </div>
                       </div>
+                      
+                      {/* 2-Day Forecast - Always visible */}
+                      {forecastData && forecastData.days && forecastData.days.length > 0 && (
+                        <div className="forecast-section-db">
+                          <h4 className="forecast-title-db">2-Day Forecast</h4>
+                          <div className="forecast-days-db">
+                            {forecastData.days.map((day, index) => (
+                              <div key={index} className="forecast-day-db">
+                                <div className="forecast-date-db">
+                                  {new Date(day.date).toLocaleDateString('en-US', { 
+                                    weekday: 'short', 
+                                    month: 'short', 
+                                    day: 'numeric' 
+                                  })}
+                                </div>
+                                <div className="day-summary-db">
+                                  <div className="day-temp-range-db">
+                                    {getDayTempRange(day.forecasts)}
+                                  </div>
+                                  <div className="day-condition-db">
+                                    {getDayCondition(day.forecasts)}
+                                  </div>
+                                </div>
+                                <div className="hourly-forecast-db">
+                                  {day.forecasts.slice(0, 4).map((forecast, timeIndex) => (
+                                    <div key={timeIndex} className="hour-slot-db">
+                                      <div className="hour-time-db">{forecast.time.split(':')[0]}h</div>
+                                      <div className="hour-icon-db">{forecast.icon}</div>
+                                      <div className="hour-temp-db">{forecast.temperature}°</div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ) : (
-                    <div className="weather-loading-db">Loading weather...</div>
+                    <div className="weather-prompt-db">
+                      <p>Enter a city name and click "Get Weather" to see current conditions and forecast</p>
+                    </div>
                   )}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Currency Converter Section */}
+          {/* Right Section - Currency Converter */}
           <div className="dashboard-section-db">
             <div className="tools-container-db">
               <div className="tool-card-db">
@@ -771,10 +907,7 @@ const Dashboard = () => {
                     )}
                   </div>
                   <div className="trip-meta-db">
-                    <div className="trip-location-db">
-                      <FaMapMarkerAlt className="meta-icon-db" />
-                      {trip.location}
-                    </div>
+                    
                     <div className="trip-date-db">
                       <FaCalendarAlt className="meta-icon-db" />
                       {trip.date}

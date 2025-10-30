@@ -8,6 +8,8 @@ import ForgotPassword from './pages/Auth/forgot-password';
 import ResetPassword from './pages/Auth/reset-password';
 import Dashboard from './pages/Dashboard';
 import CreateTrip from './pages/CreateTrip';
+import Profile from './pages/Profile';
+import AdminDashboard from './pages/AdminDashboard';
 // import AdminPanel from './pages/Admin/AdminPanel';
 import './App.css';
 
@@ -22,7 +24,8 @@ function App() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/forgot-password" element={<ForgotPassword/>}/>
           <Route path="/reset-password/:token" element={<ResetPassword/>}/>
-
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/admin-dashboard" element={<AdminDashboard />} />
           
           {/* Protected Routes - User */}
           <Route path="/dashboard" element={<Dashboard />} />

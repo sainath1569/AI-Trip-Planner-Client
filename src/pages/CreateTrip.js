@@ -512,13 +512,14 @@ const handleTripClick = async (trip) => {
 };
 // Replace the handleSendMessage function in src/pages/CreateTrip.js
 
+// Replace the handleSendMessage function in CreateTrip.js
 const handleSendMessage = async () => {
   if (!prompt.trim()) return;
 
   setIsGenerating(true);
 
   try {
-    // Add user message to conversation
+    // Add user message to conversation immediately for better UX
     const userMessage = {
       message: prompt,
       isUser: true,
@@ -535,38 +536,40 @@ const handleSendMessage = async () => {
       // ✅ USE CHAT ENDPOINT for existing plans
       console.log('🔄 Sending follow-up question to plan:', activeTrip.id);
       
-      response = await makeAuthenticatedRequest(
-        `/plans/chat/${activeTrip.id}?message=${encodeURIComponent(currentPrompt)}`, 
-        {
-          method: 'POST'
-        }
-      );
+      // Use proper request body with ChatRequest schema
+      response = await makeAuthenticatedRequest(`/plans/chat/${activeTrip.id}`, {
+        method: 'POST',
+        body: JSON.stringify({
+          message: currentPrompt  // This matches ChatRequest schema
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       
       const data = await response.json();
       console.log('📥 Chat API Response:', data);
-      console.log('📝 Response content field:', data.content);
-      console.log('📝 Response content length:', data.content?.length);
-      console.log('💬 Updated conversation_history:', data.conversation_history);
       
-      // Update active trip with new content
-      setActiveTrip(data);
-      
-      // ✅ SYNC conversation state with backend's conversation_history
-      if (data.conversation_history && data.conversation_history.length > 0) {
+      // ✅ CRITICAL: The backend now returns the updated plan with conversation_history
+      if (data.conversation_history && Array.isArray(data.conversation_history)) {
+        console.log('✅ Found conversation_history with', data.conversation_history.length, 'messages');
+        
+        // Convert backend format to frontend format
         const formattedConversation = data.conversation_history.map(msg => ({
           message: msg.content,
           isUser: msg.role === 'user',
           timestamp: new Date().toISOString()
         }));
         
+        console.log('🔄 Setting conversation to:', formattedConversation);
         setConversation(formattedConversation);
-        console.log(`✅ Synced ${formattedConversation.length} messages from backend`);
       } else {
-        // Fallback: Add AI response to conversation if no history
-        let aiResponseText = data.content || "I've processed your request!";
+        console.log('⚠️ No conversation_history found, using content field');
         
+        // Fallback: Use the content field
         const aiMessage = {
-          message: aiResponseText,
+          message: data.content || "I've processed your request!",
           isUser: false,
           timestamp: new Date().toISOString()
         };
@@ -574,8 +577,11 @@ const handleSendMessage = async () => {
         setConversation(prev => [...prev, aiMessage]);
       }
       
+      // ✅ Update the active trip with the latest data
+      setActiveTrip(data);
+      
     } else {
-      // Create new trip
+      // Create new trip (your existing code for new trips)
       const parsedDetails = parsePrompt(currentPrompt);
       const planData = {
         title: `${parsedDetails.duration}-Day Trip to ${parsedDetails.destination}`,
@@ -594,9 +600,12 @@ const handleSendMessage = async () => {
         body: JSON.stringify(planData)
       });
       
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
       console.log('📥 Generate API Response:', data);
-      console.log('💬 Initial conversation_history:', data.conversation_history);
       
       // Set as active trip
       setActiveTrip(data);
@@ -605,7 +614,7 @@ const handleSendMessage = async () => {
       localStorage.setItem('lastActiveTripId', data.id.toString());
       navigate(`/create-trip?trip=${data.id}`, { replace: true });
       
-      // ✅ SYNC conversation state with backend's conversation_history
+      // ✅ Load conversation from new plan
       if (data.conversation_history && data.conversation_history.length > 0) {
         const formattedConversation = data.conversation_history.map(msg => ({
           message: msg.content,
@@ -614,18 +623,15 @@ const handleSendMessage = async () => {
         }));
         
         setConversation(formattedConversation);
-        console.log(`✅ Synced ${formattedConversation.length} messages from new plan`);
       } else {
-        // Fallback: Add AI response if no history
-        let aiResponseText = data.content || data.answer || "I've created your travel plan!";
-        
+        // Fallback for new plans
         const aiMessage = {
-          message: aiResponseText,
+          message: data.content || "I've created your travel plan!",
           isUser: false,
           timestamp: new Date().toISOString()
         };
         
-        setConversation(prev => [...prev, aiMessage]);
+        setConversation([aiMessage]);
       }
       
       // Add to trips list
@@ -635,6 +641,9 @@ const handleSendMessage = async () => {
   } catch (error) {
     console.error('❌ Error in handleSendMessage:', error);
     
+    // Remove the optimistic user message on error
+    setConversation(prev => prev.slice(0, -1));
+    
     let errorMessage = "Sorry, I encountered an error. Please try again.";
     
     if (error.message.includes('Failed to fetch')) {
@@ -642,11 +651,11 @@ const handleSendMessage = async () => {
     } else if (error.message.includes('Session expired')) {
       errorMessage = "Your session has expired. Please log in again.";
       navigate('/login');
+    } else if (error.message.includes('422')) {
+      errorMessage = "Invalid request format. Please try again.";
     } else {
       errorMessage = error.message || "An unexpected error occurred.";
     }
-    
-    alert(`Error: ${errorMessage}`);
     
     // Add error message to conversation
     const errorMessageObj = {
@@ -659,7 +668,6 @@ const handleSendMessage = async () => {
     setIsGenerating(false);
   }
 };
-
 
   const handleDeleteTrip = async (tripId, e) => {
     e.stopPropagation();
@@ -859,11 +867,57 @@ const handleSendMessage = async () => {
         <div className="user-section-ct">
           <div className="user-info-ct">
             <div className="user-avatar-ct">
-              <FaUser />
+              {(() => {
+                const pic = localStorage.getItem('profile_pic');
+                return (
+                  <>
+                    {pic ? (
+                      <img
+                        src={pic}
+                        alt="Profile"
+                        className="user-avatar-img-ct"
+                      />
+                    ) : (
+                      <FaUser className="fallback-user-icon-ct" />
+                    )}
+                    <style>{`
+                      /* Avatar styles injected locally */
+                      .user-avatar-img-ct {
+                        width: 48px;
+                        height: 48px;
+                        border-radius: 50%;
+                        object-fit: cover;
+                        display: block;
+                        border: 2px solid rgba(255,255,255,0.9);
+                        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+                      }
+                      .fallback-user-icon-ct {
+                        width: 48px;
+                        height: 48px;
+                        color: #ffffff;
+                        background: #f59e0b;
+                        border-radius: 50%;
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 20px;
+                        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+                      }
+                      /* Ensure avatar container doesn't stretch layout */
+                      .user-avatar-ct {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 2px;
+                      }
+                    `}</style>
+                  </>
+                );
+              })()}
             </div>
-            <div className="user-details-ct">
-              <span className="username-ct">{user?.username || 'Traveler'}</span>
-              <span className="user-email-ct">{user?.email}</span>
+            <div className="user-details-ct1">
+              <span className="username-ct1">{user?.username || 'Traveler'}</span>
+              <span className="user-email-ct1">{user?.email}</span>
             </div>
           </div>
           <div className="user-menu-ct">
@@ -875,7 +929,7 @@ const handleSendMessage = async () => {
                 <FaChartBar />
                 <span className="dropdown-text-ct">Dashboard</span>
               </button>
-              <button>
+              <button onClick={() => navigate('/profile')}>
                 <FaUser />
                 <span className="dropdown-text-ct">Profile</span>
               </button>
@@ -947,31 +1001,27 @@ const handleSendMessage = async () => {
               {/* Chat Interface */}
               <div className="chat-interface-ct" ref={chatContainerRef}>
                 <div className="chat-messages-ct">
-                  {(() => {
-                    console.log('🎨 [RENDER] Conversation length:', conversation.length);
-                    console.log('🎨 [RENDER] Conversation:', conversation);
-                    return conversation.length === 0 ? (
-                      <div className="no-conversation-ct">
-                        <p>Start a conversation about your trip!</p>
-                        <p>Ask questions like:</p>
-                        <ul>
-                          <li>"Can you add more details about day 2?"</li>
-                          <li>"What are the best restaurants in the area?"</li>
-                          <li>"Can you suggest alternative activities?"</li>
-                        </ul>
-                      </div>
-                    ) : (
-                      conversation.map((msg, index) => (
-                        <ChatMessage
-                          key={index}
-                          message={msg.message}
-                          isUser={msg.isUser}
-                          onCopy={handleCopyMessage}
-                          onDownload={handleDownloadMessageAsPDF}
-                        />
-                      ))
-                    );
-                  })()}
+                  {conversation.length === 0 ? (
+  <div className="no-conversation-ct">
+    <p>Start a conversation about your trip!</p>
+    <p>Ask questions like:</p>
+    <ul>
+      <li>"Can you add more details about day 2?"</li>
+      <li>"What are the best restaurants in the area?"</li>
+      <li>"Can you suggest alternative activities?"</li>
+    </ul>
+  </div>
+) : (
+  conversation.map((msg, index) => (
+    <ChatMessage
+      key={index}
+      message={msg.message}
+      isUser={msg.isUser}
+      onCopy={handleCopyMessage}
+      onDownload={handleDownloadMessageAsPDF}
+    />
+  ))
+)}
                   {isGenerating && (
                     <div className="chat-message-ct ai-message-ct">
                       <div className="message-avatar-ct">

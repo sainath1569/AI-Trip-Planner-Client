@@ -4,6 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import "./Auth.css";
 
 function LoginComponent() {
@@ -12,6 +13,7 @@ function LoginComponent() {
     password: ""
   });
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -19,6 +21,10 @@ function LoginComponent() {
       ...formData,
       [e.target.name]: e.target.value
     });
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   const handleLogin = async () => {
@@ -145,15 +151,24 @@ function LoginComponent() {
 
         <div className="auth-input-container">
           <label className="auth-label" htmlFor="password">Password:</label>
-          <input
-            className="auth-input"
-            id="password"
-            name="password"
-            type="password"
-            placeholder="Enter your password"
-            value={formData.password}
-            onChange={handleChange}
-          />
+          <div className="password-input-wrapper">
+            <input
+              className="auth-input password-input"
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Enter your password"
+              value={formData.password}
+              onChange={handleChange}
+            />
+            <button
+              type="button"
+              className="password-toggle-btn"
+              onClick={togglePasswordVisibility}
+            >
+              <span style={{ fontSize: "1.6rem", lineHeight: 1 }}>{showPassword ? "🙉" : "🙈"}</span>
+            </button>
+          </div>
         </div>
 
         <div className="auth-actions">

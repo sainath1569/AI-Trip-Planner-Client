@@ -63,67 +63,80 @@ const Dashboard = () => {
   const API_BASE = 'http://127.0.0.1:8000';
 
   // API Service Functions
-  const getAuthToken = () => {
-    return localStorage.getItem('token') || localStorage.getItem('access_token');
+  // API Service Functions
+const getAuthToken = () => {
+  return localStorage.getItem('token') || localStorage.getItem('access_token');
+};
+
+// Add this function to get API Key
+const getApiKey = () => {
+  return 'Rj1oezb-Yfb2-64DBZiAZqTAB_ox5KRT7CFFKIyL1GE';
+};
+
+const makeAuthenticatedRequest = async (endpoint, options = {}, requiresAuth = true) => {
+  const token = getAuthToken();
+  const apiKey = getApiKey();
+  
+  const config = {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': apiKey,
+      'x-real-ip': '127.0.0.1',
+      ...options.headers,
+    },
   };
 
-  const makeAuthenticatedRequest = async (endpoint, options = {}, requiresAuth = true) => {
-    const token = getAuthToken();
+  if (requiresAuth && token) {
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}${endpoint}`, config);
     
-    const config = {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-    };
-
-    if (requiresAuth && token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
+    if (requiresAuth && response.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('access_token');
+      throw new Error('Session expired. Please log in again.');
     }
 
-    try {
-      const response = await fetch(`${API_BASE}${endpoint}`, config);
-      
-      if (requiresAuth && response.status === 401) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('access_token');
-        throw new Error('Session expired. Please log in again.');
-      }
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return response;
-    } catch (error) {
-      console.error('Network error:', error);
-      throw error;
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    return response;
+  } catch (error) {
+    console.error('Network error:', error);
+    throw error;
+  }
+};
+
+const makePublicRequest = async (endpoint, options = {}) => {
+  const apiKey = getApiKey();
+  
+  const config = {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': apiKey,
+      'x-real-ip': '127.0.0.1',
+      ...options.headers,
+    },
   };
 
-  const makePublicRequest = async (endpoint, options = {}) => {
-    const config = {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-    };
-
-    try {
-      const response = await fetch(`${API_BASE}${endpoint}`, config);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return response;
-    } catch (error) {
-      console.error('Network error:', error);
-      throw error;
+  try {
+    const response = await fetch(`${API_BASE}${endpoint}`, config);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-  };
+
+    return response;
+  } catch (error) {
+    console.error('Network error:', error);
+    throw error;
+  }
+};
 
   // Popular currencies
   const popularCurrencies = [
@@ -589,16 +602,22 @@ const Dashboard = () => {
   };
 
   // Auto-update converter when inputs change
-  useEffect(() => {
-    if (currencyRates && currencyRates.rates && currencyRates.rates[converter.to]) {
-      const rate = currencyRates.rates[converter.to];
-      setConverter(prev => ({
-        ...prev,
-        result: prev.amount * rate
-      }));
-    }
-  }, [converter.amount, converter.from, converter.to, currencyRates]);
+useEffect(() => {
+  if (currencyRates && currencyRates.rates && currencyRates.rates[converter.to]) {
+    const rate = currencyRates.rates[converter.to];
+    setConverter(prev => ({
+      ...prev,
+      result: prev.amount * rate
+    }));
+  }
+}, [converter.amount, converter.to, currencyRates]);
 
+// Update currency rates when base currency changes
+useEffect(() => {
+  if (converter.from) {
+    fetchCurrencyRates(converter.from);
+  }
+}, [converter.from]);
   if (loading) {
     return (
       <div className="loading-container-db">

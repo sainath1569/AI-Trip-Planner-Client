@@ -14,6 +14,8 @@ function SignUpComponent() {
     confirmPassword: ""
   });
   const [isSigningUp, setIsSigningUp] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -21,6 +23,14 @@ function SignUpComponent() {
       ...formData,
       [e.target.name]: e.target.value
     });
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
   };
 
   const handleSignUp = async () => {
@@ -170,28 +180,46 @@ function SignUpComponent() {
 
         <div className="auth-input-container">
           <label className="auth-label" htmlFor="password">Password:</label>
-          <input
-            className="auth-input"
-            id="password"
-            name="password"
-            type="password"
-            placeholder="Enter your password"
-            value={formData.password}
-            onChange={handleChange}
-          />
+          <div className="password-input-wrapper">
+            <input
+              className="auth-input"
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Enter your password"
+              value={formData.password}
+              onChange={handleChange}
+            />
+            <button
+              type="button"
+              className="password-toggle"
+              onClick={togglePasswordVisibility}
+            >
+             <span style={{ fontSize: "1.6rem", lineHeight: 1 }}> {showPassword ? "🙉" : "🙈"} </span>
+            </button>
+          </div>
         </div>
 
         <div className="auth-input-container">
           <label className="auth-label" htmlFor="confirmPassword">Confirm Password:</label>
-          <input
-            className="auth-input"
-            id="confirmPassword"
-            name="confirmPassword"
-            type="password"
-            placeholder="Confirm your password"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-          />
+          <div className="password-input-wrapper">
+            <input
+              className="auth-input"
+              id="confirmPassword"
+              name="confirmPassword"
+              type={showConfirmPassword ? "text" : "password"}
+              placeholder="Confirm your password"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+            />
+            <button
+              type="button"
+              className="password-toggle"
+              onClick={toggleConfirmPasswordVisibility}
+            >
+             <span style={{ fontSize: "1.6rem", lineHeight: 1 }}> {showConfirmPassword ? "🙉" : "🙈"} </span>
+            </button>
+          </div>
         </div>
 
         <div className="auth-actions">

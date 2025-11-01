@@ -74,7 +74,7 @@ const ChatMessage = ({ message, isUser, onCopy, onDownload }) => {
 const CreateTrip = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(() => (typeof window !== 'undefined' ? window.innerWidth > 768 : true));
   const [trips, setTrips] = useState([]);
   const [pinnedPlans, setPinnedPlans] = useState([]);
   const [activeTrip, setActiveTrip] = useState(null);
@@ -87,6 +87,23 @@ const CreateTrip = () => {
   const [isLoading, setIsLoading] = useState(true);
   
   const chatContainerRef = useRef(null);
+
+  // Ensure sidebar defaults to collapsed on small screens
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth <= 768) {
+        setSidebarOpen(false);
+      } else {
+        setSidebarOpen(true);
+      }
+    };
+
+    // initialize
+    handleResize();
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const touchStartX = useRef(0);
 
   // Get auth token from localStorage
@@ -726,40 +743,43 @@ const CreateTrip = () => {
     );
   }
 
-  return (
-    <div 
-      className={`trip-planner-ct ${sidebarOpen ? 'sidebar-open-ct' : 'sidebar-closed-ct'}`}
-      onClick={() => {
-        // Close sidebar when clicking on overlay on mobile
-        if (window.innerWidth <= 768 && sidebarOpen) {
-          setSidebarOpen(false);
-        }
-      }}
-    >
-      {/* Sidebar Toggle Button */}
-      
-
-     <div className="mobile-header-ct">
-  <button 
-    className="mobile-menu-btn-ct"
-    onClick={(e) => {
-      e.stopPropagation();
-      setSidebarOpen(true);
+ 
+    return (
+  <div 
+    className={`trip-planner-ct ${sidebarOpen ? 'sidebar-open-ct' : 'sidebar-closed-ct'}`}
+    onClick={() => {
+      // Close sidebar when clicking on overlay on mobile
+      if (window.innerWidth <= 768 && sidebarOpen) {
+        setSidebarOpen(false);
+      }
     }}
   >
-    <FaCompass /> {/* Changed from FaBars to FaCompass */}
-  </button>
-  <div className="mobile-header-content-ct">
-    <h1 className="mobile-title-ct">
-      {activeTrip ? activeTrip.destination : 'Trip Planner'}
-    </h1>
-    {activeTrip && (
-      <p className="mobile-subtitle-ct">
-        {activeTrip.duration} days • {activeTrip.group_size || 1} traveler{activeTrip.group_size > 1 ? 's' : ''}
-      </p>
-    )}
-  </div>
-</div>
+   
+
+    {/* Mobile Header with Simplified Design */}
+    <div className="mobile-header-ct">
+      <button 
+        className="mobile-menu-btn-ct"
+        onClick={(e) => {
+          e.stopPropagation();
+          setSidebarOpen(true);
+        }}
+      >
+        <FaCompass />
+      </button>
+      <div className="mobile-header-content-ct">
+        <h1 className="mobile-title-ct">
+          {activeTrip ? activeTrip.destination : 'Trip Planner'}
+        </h1>
+        {activeTrip && (
+          <p className="mobile-subtitle-ct">
+            {activeTrip.duration} days • {activeTrip.group_size || 1} traveler{activeTrip.group_size > 1 ? 's' : ''}
+          </p>
+        )}
+      </div>
+    </div>
+
+    {/* Rest of your code remains the same... */}
 
       {/* Sidebar */}
       <div 
@@ -811,10 +831,7 @@ const CreateTrip = () => {
                     <div className="trip-item-header-ct">
                       <h4 className="trip-item-title-ct">{trip.title}</h4>
                     </div>
-                    <p className="trip-item-preview-ct">
-                      {trip.destination} • {trip.duration} days
-                      {trip.budget && ` • ${trip.currency} ${trip.budget}`}
-                    </p>
+                    
                     <div className="trip-item-actions-ct">
                       <button 
                         className={`action-btn-ct pin-btn-ct ${isPlanPinned(trip.id) ? 'pinned-ct' : ''}`}
@@ -962,24 +979,7 @@ const CreateTrip = () => {
             <div className="trip-details-ct">
               {/* Trip Meta Information */}
               <div className="trip-meta-info-ct">
-                <div className="meta-item-ct">
-                  <FaMapMarkerAlt className="meta-icon-ct" />
-                  <span>{activeTrip.destination}</span>
-                </div>
-                <div className="meta-item-ct">
-                  <FaCalendarAlt className="meta-icon-ct" />
-                  <span>{activeTrip.duration} days</span>
-                </div>
-                {activeTrip.budget && (
-                  <div className="meta-item-ct">
-                    <FaMoneyBillWave className="meta-icon-ct" />
-                    <span>{activeTrip.currency} {activeTrip.budget}</span>
-                  </div>
-                )}
-                <div className="meta-item-ct">
-                  <FaUsers className="meta-icon-ct" />
-                  <span>{activeTrip.group_size || 1} traveler(s)</span>
-                </div>
+                
                 <div className="meta-item-ct map-button-container-ct">
                   <MapModal 
                     planId={activeTrip.id}

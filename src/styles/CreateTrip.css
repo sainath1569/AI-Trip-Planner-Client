@@ -63,8 +63,6 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  position: relative;
-  overflow: hidden;
 }
 
 .new-trip-btn-ct:hover {
@@ -455,19 +453,19 @@
   font-size: 0.95rem;
 }
 
-/* Chat Container */
+/* Chat Container - Single Scroll */
 .chat-container-ct {
   flex: 1;
   display: flex;
   flex-direction: column;
   padding: 20px;
-  overflow: hidden;
   position: relative;
 }
 
 .trip-details-ct {
   flex: 1;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
   margin-bottom: 20px;
   background: rgba(30, 41, 59, 0.6);
   backdrop-filter: blur(20px);
@@ -479,43 +477,44 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
-/* Trip Meta Information */
+/* Trip Meta Information - Compact Single Row */
 .trip-meta-info-ct {
   display: flex;
-  gap: 16px;
+  gap: 8px;
   margin-bottom: 20px;
   padding-bottom: 16px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .meta-item-ct {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   color: rgba(255, 255, 255, 0.8);
-  font-size: 0.9rem;
-  padding: 6px 10px;
+  font-size: 0.8rem;
+  padding: 4px 8px;
   background: rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
+  border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.15);
+  white-space: nowrap;
 }
 
 .meta-icon-ct {
   color: #f59e0b;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
 }
 
 .map-button-container-ct {
   background: transparent !important;
   border: none !important;
   padding: 0 !important;
-  margin-left: auto;
 }
 
-/* Chat Interface Styles */
+/* Chat Interface - Single Scroll */
 .chat-interface-ct {
-  height: 400px;
+  flex: 1;
   overflow-y: auto;
 }
 
@@ -532,7 +531,6 @@
   border-radius: 12px;
   max-width: 80%;
   animation: messageSlide-ct 0.3s ease-out;
-  position: relative;
 }
 
 @keyframes messageSlide-ct {
@@ -556,7 +554,6 @@
   align-self: flex-start;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  margin-top: 20px;
 }
 
 .message-avatar-ct {
@@ -664,8 +661,6 @@
   border: 2px dashed rgba(255, 255, 255, 0.2);
   border-radius: 16px;
   margin-bottom: 20px;
-  position: relative;
-  overflow: hidden;
 }
 
 .welcome-icon-ct {
@@ -729,8 +724,6 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  position: relative;
-  overflow: hidden;
 }
 
 .prompt-examples-ct button:hover {
@@ -741,22 +734,21 @@
     0 0 10px rgba(245, 158, 11, 0.15);
 }
 
-/* Input Area */
+/* Input Area - Single Row Layout */
 .input-container-ct {
   margin-top: auto;
 }
 
 .input-wrapper-ct {
-  position: relative;
-  margin-bottom: 12px;
   display: flex;
   align-items: flex-end;
   gap: 10px;
+  margin-bottom: 12px;
 }
 
 .prompt-input-ct {
-  width: 100%;
-  padding: 16px;
+  flex: 1;
+  padding: 12px 16px;
   background: rgba(30, 41, 59, 0.8);
   backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -769,7 +761,6 @@
   box-shadow: 
     0 4px 20px rgba(0, 0, 0, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  flex: 2;
 }
 
 .prompt-input-ct::placeholder {
@@ -854,7 +845,6 @@
   height: 100vh;
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #1e1b4b 100%);
   color: white;
-  font-family: inherit;
 }
 
 .loading-spinner-large-ct {
@@ -926,101 +916,27 @@
 
 /* Scrollbar Styling */
 .sidebar-content-ct::-webkit-scrollbar,
-.trip-details-ct::-webkit-scrollbar,
 .chat-interface-ct::-webkit-scrollbar {
   width: 4px;
 }
 
 .sidebar-content-ct::-webkit-scrollbar-track,
-.trip-details-ct::-webkit-scrollbar-track,
 .chat-interface-ct::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
 }
 
 .sidebar-content-ct::-webkit-scrollbar-thumb,
-.trip-details-ct::-webkit-scrollbar-thumb,
 .chat-interface-ct::-webkit-scrollbar-thumb {
   background: linear-gradient(135deg, #f59e0b, #d97706);
   border-radius: 8px;
 }
 
 .sidebar-content-ct::-webkit-scrollbar-thumb:hover,
-.trip-details-ct::-webkit-scrollbar-thumb:hover,
 .chat-interface-ct::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(135deg, #d97706, #b45309);
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .sidebar-ct {
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    z-index: 1000;
-    transform: translateX(-100%);
-    width: 280px;
-  }
-
-  .sidebar-open-ct .sidebar-ct {
-    transform: translateX(0);
-  }
-
-  .welcome-message-ct {
-    padding: 30px 16px;
-  }
-
-  .welcome-message-ct h2 {
-    font-size: 1.6rem;
-  }
-
-  .prompt-examples-ct button {
-    padding: 10px 12px;
-    font-size: 0.85rem;
-  }
-
-  .chat-message-ct {
-    max-width: 90%;
-  }
-
-  .input-wrapper-ct {
-    flex-direction: column;
-  }
-  
-  .send-btn-ct {
-    width: 100%;
-    height: 44px;
-    margin-top: 8px;
-  }
-
-  .trip-meta-info-ct {
-    flex-direction: column;
-    gap: 8px;
-  }
-}
-
-@media (max-width: 480px) {
-  .chat-container-ct {
-    padding: 16px;
-  }
-
-  .trip-details-ct {
-    padding: 16px;
-  }
-
-  .page-title-ct {
-    font-size: 1.5rem;
-  }
-
-  .welcome-message-ct h2 {
-    font-size: 1.4rem;
-  }
-
-  .prompt-input-ct {
-    padding: 12px;
-  }
-}
 /* Sidebar Toggle Button */
 .sidebar-toggle-ct {
   position: fixed;
@@ -1052,361 +968,6 @@
 }
 
 /* Mobile Header */
-.mobile-header-ct {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  background: rgba(15, 23, 42, 0.95);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 12px 16px;
-  z-index: 900;
-  align-items: center;
-  gap: 12px;
-}
-
-.mobile-menu-btn-ct {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  border: none;
-  border-radius: 8px;
-  width: 40px;
-  height: 40px;
-  color: white;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.1rem;
-  transition: all 0.3s ease;
-}
-
-.mobile-menu-btn-ct:hover {
-  background: linear-gradient(135deg, #d97706, #b45309);
-  transform: scale(1.05);
-}
-
-.mobile-title-ct {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #ffffff;
-  margin: 0;
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Mobile Responsive Styles */
-@media (max-width: 768px) {
-  .trip-planner-ct {
-    height: 100vh;
-    overflow: hidden;
-    position: relative;
-  }
-  
-  .mobile-header-ct {
-    display: flex;
-  }
-  
-  .sidebar-toggle-ct {
-    display: none;
-  }
-  
-  .sidebar-ct {
-    position: fixed;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    z-index: 1000;
-    transform: translateX(-100%);
-    width: 85%;
-    max-width: 320px;
-    transition: transform 0.3s ease;
-    box-shadow: 4px 0 25px rgba(0, 0, 0, 0.4);
-  }
-  
-  .sidebar-open-ct .sidebar-ct {
-    transform: translateX(0);
-  }
-  
-  .main-content-ct {
-    width: 100%;
-    height: 100vh;
-    padding-top: 64px; /* Account for mobile header */
-    transition: transform 0.3s ease;
-  }
-  
-  .sidebar-open-ct .main-content-ct {
-    transform: translateX(85%);
-  }
-  
-  /* Mobile overlay when sidebar is open */
-  .sidebar-open-ct::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 999;
-    backdrop-filter: blur(2px);
-  }
-  
-  .content-header-ct {
-    display: none; /* Hide desktop header on mobile */
-  }
-  
-  /* Adjust main content for mobile */
-  .chat-container-ct {
-    padding: 16px;
-    height: calc(100vh - 64px);
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .trip-details-ct {
-    padding: 16px;
-    margin-bottom: 16px;
-    flex: 1;
-    overflow-y: auto;
-  }
-  
-  .trip-meta-info-ct {
-    flex-direction: column;
-    gap: 8px;
-  }
-  
-  .meta-item-ct {
-    width: 100%;
-    justify-content: center;
-    padding: 8px 12px;
-  }
-  
-  .chat-message-ct {
-    max-width: 90%;
-    padding: 12px;
-  }
-  
-  .input-wrapper-ct {
-    flex-direction: column;
-  }
-  
-  .send-btn-ct {
-    width: 100%;
-    height: 44px;
-    margin-top: 8px;
-  }
-  
-  .welcome-message-ct {
-    padding: 30px 16px;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-  
-  .welcome-message-ct h2 {
-    font-size: 1.5rem;
-  }
-  
-  .welcome-icon-ct {
-    font-size: 3rem;
-  }
-  
-  .prompt-examples-ct button {
-    padding: 10px 12px;
-    font-size: 0.85rem;
-  }
-  
-  /* Improved mobile touch targets */
-  .trip-item-ct {
-    padding: 16px;
-    min-height: 60px;
-  }
-  
-  .action-btn-ct {
-    padding: 8px;
-    min-width: 36px;
-    min-height: 36px;
-  }
-  
-  .menu-btn-ct {
-    padding: 10px;
-    min-width: 44px;
-    min-height: 44px;
-  }
-  
-  .dropdown-menu-ct button {
-    padding: 12px 14px;
-    min-height: 44px;
-  }
-}
-
-@media (max-width: 480px) {
-  .sidebar-ct {
-    width: 90%;
-  }
-  
-  .sidebar-open-ct .main-content-ct {
-    transform: translateX(90%);
-  }
-  
-  .chat-container-ct {
-    padding: 12px;
-  }
-  
-  .trip-details-ct {
-    padding: 12px;
-    margin-top: 50px;
-  }
-  
-  .prompt-input-ct {
-    padding: 12px;
-    font-size: 16px; /* Prevents zoom on iOS */
-  }
-  
-  .welcome-message-ct h2 {
-    font-size: 1.3rem;
-  }
-  
-  .welcome-message-ct p {
-    font-size: 0.9rem;
-  }
-  
-  .mobile-title-ct {
-    font-size: 1.1rem;
-  }
-}
-
-/* Tablet Styles */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .sidebar-ct {
-    width: 280px;
-  }
-  
-  .sidebar-toggle-ct {
-    left: 280px;
-  }
-  
-  .trip-planner-ct.sidebar-closed-ct .sidebar-ct {
-    transform: translateX(-100%);
-  }
-  
-  .trip-planner-ct.sidebar-closed-ct .main-content-ct {
-    margin-left: 0;
-  }
-  
-  .trip-planner-ct.sidebar-closed-ct .sidebar-toggle-ct {
-    left: 0;
-  }
-}
-
-/* Desktop Styles with Collapsible Sidebar */
-@media (min-width: 1025px) {
-  .mobile-header-ct {
-    display: none;
-  }
-  
-  .sidebar-ct {
-    width: 320px;
-    transform: translateX(0);
-    transition: transform 0.3s ease;
-  }
-  
-  .trip-planner-ct.sidebar-closed-ct .sidebar-ct {
-    transform: translateX(-100%);
-  }
-  
-  .main-content-ct {
-    margin-left: 0;
-    transition: margin-left 0.3s ease;
-    padding-top: 0;
-  }
-  
-  .trip-planner-ct.sidebar-open-ct .main-content-ct {
-    margin-left: 0;
-  }
-  
-  .sidebar-toggle-ct {
-    left: 320px;
-    transition: left 0.3s ease;
-  }
-  
-  .trip-planner-ct.sidebar-closed-ct .sidebar-toggle-ct {
-    left: 0;
-  }
-}
-
-/* Prevent horizontal scroll on mobile */
-@media (max-width: 768px) {
-  body {
-    overflow-x: hidden;
-  }
-  
-  .trip-planner-ct {
-    max-width: 100vw;
-    overflow-x: hidden;
-  }
-}
-
-/* Ensure content is properly spaced on mobile */
-@media (max-width: 768px) {
-  .chat-interface-ct {
-    height: 100%;
-    overflow-y: auto;
-  }
-  
-  .chat-messages-ct {
-    min-height: 100%;
-  }
-}
-/* REPLACE THIS: */
-.mobile-header-ct {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  background: rgba(15, 23, 42, 0.95);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 12px 16px;
-  z-index: 900;
-  align-items: center;
-  gap: 12px;
-}
-
-.mobile-menu-btn-ct {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  border: none;
-  border-radius: 8px;
-  width: 40px;
-  height: 40px;
-  color: white;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.1rem;
-  transition: all 0.3s ease;
-}
-
-.mobile-title-ct {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #ffffff;
-  margin: 0;
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* WITH THIS: */
-/* Mobile Header - Simplified */
 .mobile-header-ct {
   display: none;
   position: fixed;
@@ -1473,7 +1034,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-/* ADD THIS NEW SECTION for desktop expansion: */
+
 /* Desktop Layout Adjustments */
 .trip-planner-ct.sidebar-closed-ct .main-content-ct {
   margin-left: 0;
@@ -1485,79 +1046,7 @@
   width: calc(100% - 320px);
 }
 
-/* Chat Container Expansion for Desktop */
-.trip-planner-ct.sidebar-closed-ct .chat-container-ct {
-  max-width: 100%;
-}
-
-.trip-planner-ct.sidebar-closed-ct .trip-details-ct {
-  max-width: 100%;
-}
-
-.trip-planner-ct.sidebar-closed-ct .chat-message-ct {
-  max-width: 70%;
-}
-
-.trip-planner-ct.sidebar-closed-ct .welcome-message-ct {
-  max-width: 100%;
-}
-
-.trip-planner-ct.sidebar-closed-ct .prompt-examples-ct {
-  max-width: 600px;
-}
-
-/* Input Field Expansion */
-.trip-planner-ct.sidebar-closed-ct .input-wrapper-ct {
-  max-width: 100%;
-}
-
-.trip-planner-ct.sidebar-closed-ct .prompt-input-ct {
-  width: 100%;
-}
-
-/* Desktop Expanded Layout */
-@media (min-width: 1025px) {
-  .trip-planner-ct.sidebar-closed-ct .chat-container-ct {
-    padding: 20px 40px;
-  }
-  
-  .trip-planner-ct.sidebar-closed-ct .trip-details-ct {
-    max-width: none;
-    margin: 0 auto 20px auto;
-  }
-  
-  .trip-planner-ct.sidebar-closed-ct .welcome-message-ct {
-    max-width: none;
-    padding: 60px 40px;
-  }
-  
-  .trip-planner-ct.sidebar-closed-ct .prompt-examples-ct {
-    max-width: 800px;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  
-  .trip-planner-ct.sidebar-closed-ct .prompt-examples-ct button {
-    flex: 1;
-    min-width: 250px;
-    max-width: 300px;
-  }
-  
-  .trip-planner-ct.sidebar-closed-ct .input-wrapper-ct {
-    max-width: 1000px;
-    margin: 0 auto;
-  }
-}
-
-/* Ensure smooth transitions */
-.trip-details-ct,
-.chat-container-ct,
-.welcome-message-ct,
-.input-wrapper-ct {
-  transition: all 0.3s ease;
-}
-/* REPLACE the mobile media query section with: */
+/* Mobile Responsive Styles */
 @media (max-width: 768px) {
   .trip-planner-ct {
     height: 100vh;
@@ -1593,7 +1082,7 @@
   .main-content-ct {
     width: 100%;
     height: 100vh;
-    padding-top: 60px; /* Account for mobile header */
+    padding-top: 60px;
     transition: transform 0.3s ease;
   }
   
@@ -1601,7 +1090,6 @@
     transform: translateX(85%);
   }
   
-  /* Mobile overlay when sidebar is open */
   .sidebar-open-ct::before {
     content: '';
     position: fixed;
@@ -1613,12 +1101,22 @@
     z-index: 999;
     backdrop-filter: blur(2px);
   }
-  
-  .content-header-ct {
-    display: none; /* Hide desktop header on mobile */
+
+  /* If we render an overlay element, allow it to become visible via a helper class */
+  .sidebar-overlay-ct.visible-ct {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 999;
+    backdrop-filter: blur(2px);
+    opacity: 1;
   }
   
-  /* Adjust main content for mobile */
+  .content-header-ct {
+    display: none;
+  }
+  
   .chat-container-ct {
     padding: 16px;
     height: calc(100vh - 60px);
@@ -1630,7 +1128,15 @@
     padding: 16px;
     margin-bottom: 16px;
     flex: 1;
-    overflow-y: auto;
+  }
+  
+  .trip-meta-info-ct {
+    gap: 6px;
+  }
+  
+  .meta-item-ct {
+    font-size: 0.75rem;
+    padding: 3px 6px;
   }
   
   .chat-message-ct {
@@ -1638,14 +1144,20 @@
     padding: 12px;
   }
   
+  /* Mobile Input - Single Row */
   .input-wrapper-ct {
-    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .prompt-input-ct {
+    padding: 10px 14px;
+    font-size: 16px;
   }
   
   .send-btn-ct {
-    width: 100%;
-    height: 44px;
-    margin-top: 8px;
+    width: 40px;
+    height: 40px;
+    padding: 10px;
   }
   
   .welcome-message-ct {
@@ -1706,8 +1218,12 @@
   }
   
   .prompt-input-ct {
-    padding: 12px;
-    font-size: 16px;
+    padding: 10px 12px;
+  }
+  
+  .send-btn-ct {
+    width: 38px;
+    height: 38px;
   }
   
   .welcome-message-ct h2 {
@@ -1717,4 +1233,350 @@
   .welcome-message-ct p {
     font-size: 0.85rem;
   }
+}
+
+/* Desktop Styles */
+@media (min-width: 1025px) {
+  .mobile-header-ct {
+    display: none;
+  }
+  
+  .sidebar-ct {
+    width: 320px;
+    transform: translateX(0);
+    transition: transform 0.3s ease;
+  }
+  
+  .trip-planner-ct.sidebar-closed-ct .sidebar-ct {
+    transform: translateX(-100%);
+  }
+  
+  .main-content-ct {
+    margin-left: 0;
+    transition: margin-left 0.3s ease;
+    padding-top: 0;
+    width: calc(100% - 320px);
+  }
+  
+  .trip-planner-ct.sidebar-closed-ct .main-content-ct {
+    width: 100%;
+    margin-left: 0;
+  }
+  
+  .sidebar-toggle-ct {
+    left: 320px;
+    transition: left 0.3s ease;
+  }
+  
+  .trip-planner-ct.sidebar-closed-ct .sidebar-toggle-ct {
+    left: 0;
+  }
+}
+
+/* Prevent horizontal scroll on mobile */
+@media (max-width: 768px) {
+  body {
+    overflow-x: hidden;
+  }
+  
+  .trip-planner-ct {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+}
+/* Chat Container - Proper Scroll */
+.chat-container-ct {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  position: relative;
+  overflow: hidden; /* Prevent container scroll */
+}
+
+.trip-details-ct {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+  background: rgba(30, 41, 59, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  overflow: hidden; /* Prevent details container scroll */
+}
+
+/* Trip Meta Information - Fixed Alignment */
+.trip-meta-info-ct {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start; /* Ensure proper alignment */
+  min-height: auto; /* Remove fixed height */
+}
+
+.meta-item-ct {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.8rem;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  white-space: nowrap;
+  flex-shrink: 0; /* Prevent shrinking */
+}
+
+.meta-icon-ct {
+  color: #f59e0b;
+  font-size: 0.7rem;
+}
+
+.map-button-container-ct {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin-left: auto; /* Push map button to the right */
+}
+
+/* Chat Interface - Proper Scroll Area */
+.chat-interface-ct {
+  flex: 1;
+  overflow-y: auto; /* Enable scroll for chat messages */
+  min-height: 0; /* Allow proper flex shrinking */
+}
+
+.chat-messages-ct {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: min-content; /* Ensure proper height calculation */
+}
+
+/* Welcome Message - Ensure it's scrollable when needed */
+.welcome-message-ct {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+  background: rgba(30, 41, 59, 0.6);
+  backdrop-filter: blur(20px);
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  margin-bottom: 20px;
+  overflow-y: auto; /* Enable scroll if content overflows */
+  min-height: 0; /* Allow proper flex shrinking */
+}
+
+/* Mobile Responsive Styles - Fixed Alignment */
+@media (max-width: 768px) {
+  .chat-container-ct {
+    padding: 16px;
+    height: calc(100vh - 60px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Prevent container scroll */
+  }
+  
+  .trip-details-ct {
+    padding: 16px;
+    margin-bottom: 16px;
+    flex: 1;
+    overflow: hidden; /* Prevent details container scroll */
+  }
+  
+  .trip-meta-info-ct {
+    gap: 6px;
+    justify-content: center; /* Center align on mobile */
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+  }
+  
+  .meta-item-ct {
+    font-size: 0.75rem;
+    padding: 3px 6px;
+    flex: 0 0 auto; /* Don't grow or shrink */
+  }
+  
+  .map-button-container-ct {
+    margin-left: 0; /* Reset on mobile */
+    width: 100%; /* Full width on mobile */
+    display: flex;
+    justify-content: center;
+    margin-top: 8px;
+  }
+  
+  .chat-interface-ct {
+    flex: 1;
+    overflow-y: auto; /* Enable scroll for chat */
+  }
+  
+  .chat-message-ct {
+    max-width: 90%;
+    padding: 12px;
+  }
+  
+  /* Mobile Input - Single Row */
+  .input-wrapper-ct {
+    gap: 8px;
+    margin-top: auto; /* Push to bottom */
+  }
+  
+  .prompt-input-ct {
+    padding: 10px 14px;
+    font-size: 16px;
+  }
+  
+  .send-btn-ct {
+    width: 40px;
+    height: 40px;
+    padding: 10px;
+  }
+  
+  .welcome-message-ct {
+    padding: 20px 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow-y: auto; /* Enable scroll if needed */
+  }
+}
+
+@media (max-width: 480px) {
+  .mobile-header-ct {
+    padding: 10px 12px;
+    min-height: 56px;
+  }
+  
+  .mobile-title-ct {
+    font-size: 1rem;
+  }
+  
+  .mobile-subtitle-ct {
+    font-size: 0.7rem;
+  }
+  
+  .mobile-menu-btn-ct {
+    width: 40px;
+    height: 40px;
+    font-size: 1.1rem;
+  }
+  
+  .chat-container-ct {
+    padding: 12px;
+  }
+  
+  .trip-details-ct {
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+  
+  .trip-meta-info-ct {
+    justify-content: space-between; /* Better spacing on small screens */
+  }
+  
+  .meta-item-ct {
+    font-size: 0.7rem;
+    padding: 2px 4px;
+  }
+  
+  .prompt-input-ct {
+    padding: 10px 12px;
+  }
+  
+  .send-btn-ct {
+    width: 38px;
+    height: 38px;
+  }
+  
+  .welcome-message-ct h2 {
+    font-size: 1.2rem;
+  }
+  
+  .welcome-message-ct p {
+    font-size: 0.85rem;
+  }
+}
+
+/* Desktop Layout Adjustments - Fixed */
+.trip-planner-ct.sidebar-closed-ct .main-content-ct {
+  margin-left: 0;
+  width: 100%;
+}
+
+.trip-planner-ct.sidebar-open-ct .main-content-ct {
+  margin-left: 0;
+  width: calc(100% - 320px);
+}
+
+/* Ensure proper scrollbar styling */
+.chat-interface-ct::-webkit-scrollbar,
+.welcome-message-ct::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-interface-ct::-webkit-scrollbar-track,
+.welcome-message-ct::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.chat-interface-ct::-webkit-scrollbar-thumb,
+.welcome-message-ct::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  border-radius: 8px;
+}
+
+.chat-interface-ct::-webkit-scrollbar-thumb:hover,
+.welcome-message-ct::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #d97706, #b45309);
+}
+
+/* Loading States - Ensure proper scroll */
+.loading-container-ct {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #1e1b4b 100%);
+  color: white;
+  overflow: hidden; /* Prevent scroll on loading */
+}
+
+/* No Conversation State */
+.no-conversation-ct {
+  text-align: center;
+  padding: 40px 20px;
+  color: rgba(255, 255, 255, 0.7);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.no-conversation-ct ul {
+  text-align: left;
+  display: inline-block;
+  margin: 16px 0;
+}
+
+.no-conversation-ct li {
+  margin: 6px 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
 }

@@ -19,7 +19,9 @@ import {
   FaMapMarkerAlt,
   FaCalendarAlt,
   FaMoneyBillWave,
-  FaUsers
+  FaUsers,
+  FaChevronRight,
+  FaBars
 } from 'react-icons/fa';
 import { 
   HiSparkles
@@ -85,6 +87,7 @@ const CreateTrip = () => {
   const [isLoading, setIsLoading] = useState(true);
   
   const chatContainerRef = useRef(null);
+  const touchStartX = useRef(0);
 
   // Get auth token from localStorage
   const getAuthToken = () => {
@@ -350,6 +353,29 @@ const CreateTrip = () => {
     }
   };
 
+  // Touch gesture handlers
+  const handleTouchStart = (e) => {
+    if (window.innerWidth <= 768) {
+      touchStartX.current = e.touches[0].clientX;
+    }
+  };
+
+  const handleTouchEnd = (e) => {
+    if (window.innerWidth <= 768) {
+      const touchEndX = e.changedTouches[0].clientX;
+      const diff = touchStartX.current - touchEndX;
+      
+      // Swipe right to open sidebar
+      if (diff < -50 && !sidebarOpen) {
+        setSidebarOpen(true);
+      }
+      // Swipe left to close sidebar
+      else if (diff > 50 && sidebarOpen) {
+        setSidebarOpen(false);
+      }
+    }
+  };
+
   useEffect(() => {
     const initializeApp = async () => {
       setIsLoading(true);
@@ -373,7 +399,6 @@ const CreateTrip = () => {
           const lastActiveTripId = localStorage.getItem('lastActiveTripId');
           if (lastActiveTripId) {
             tripId = lastActiveTripId;
-            console.log('🔄 Restoring last active trip from localStorage:', tripId);
           }
         }
         
@@ -382,12 +407,6 @@ const CreateTrip = () => {
           const fullTripDetails = await fetchTripDetails(parseInt(tripId));
           
           if (fullTripDetails) {
-            console.log('📦 [INITIAL LOAD] Loading trip details:', fullTripDetails);
-            console.log('📝 [INITIAL LOAD] Content:', fullTripDetails.content?.substring(0, 100));
-            console.log('💬 [INITIAL LOAD] Conversation history:', fullTripDetails.conversation_history);
-            console.log('💬 [INITIAL LOAD] Conversation history length:', fullTripDetails.conversation_history?.length);
-            console.log('💬 [INITIAL LOAD] Is Array?:', Array.isArray(fullTripDetails.conversation_history));
-            
             setActiveTrip(fullTripDetails);
             
             // Save to localStorage for future refreshes
@@ -407,18 +426,14 @@ const CreateTrip = () => {
                 timestamp: new Date().toISOString()
               }));
               
-              console.log('✅ [INITIAL LOAD] Formatted conversation:', formattedConversation);
               setConversation(formattedConversation);
-              console.log(`✅ [INITIAL LOAD] Loaded ${formattedConversation.length} messages from conversation_history`);
             } else {
               // Fallback: Show just the plan content
-              console.log('⚠️ [INITIAL LOAD] No conversation history found, showing content only');
               const fallbackMessage = [{
                 message: fullTripDetails.content || `I've created a ${fullTripDetails.duration}-day trip to ${fullTripDetails.destination} for you!`,
                 isUser: false,
                 timestamp: new Date().toISOString()
               }];
-              console.log('📝 [INITIAL LOAD] Setting fallback message:', fallbackMessage);
               setConversation(fallbackMessage);
             }
           }
@@ -440,234 +455,210 @@ const CreateTrip = () => {
     }
   }, [conversation]);
 
-  // In CreateTrip.js - Update handleTripClick function
+  // Add touch event listeners
+  useEffect(() => {
+    document.addEventListener('touchstart', handleTouchStart);
+    document.addEventListener('touchend', handleTouchEnd);
 
-const handleTripClick = async (trip) => {
-  console.log('🔄 Loading trip details for:', trip.title);
-  console.log('🔍 Trip ID:', trip.id);
-  
-  setIsLoading(true);
-  
-  try {
-    // Load the full plan details (includes content and conversation_history)
-    const fullTripDetails = await fetchTripDetails(trip.id);
-    
-    if (fullTripDetails) {
-      console.log('📦 Full trip details loaded:', fullTripDetails);
-      console.log('📝 Content length:', fullTripDetails.content?.length);
-      console.log('💬 Conversation history:', fullTripDetails.conversation_history);
-      console.log('💬 Conversation history length:', fullTripDetails.conversation_history?.length);
-      console.log('💬 Conversation history type:', typeof fullTripDetails.conversation_history);
-      console.log('💬 Is Array?:', Array.isArray(fullTripDetails.conversation_history));
-      
-      setActiveTrip(fullTripDetails);
-      
-      // Save to localStorage and URL for persistence
-      localStorage.setItem('lastActiveTripId', fullTripDetails.id.toString());
-      navigate(`/create-trip?trip=${fullTripDetails.id}`, { replace: true });
-      
-      // ✅ Load conversation history from the plan object
-      if (fullTripDetails.conversation_history && Array.isArray(fullTripDetails.conversation_history) && fullTripDetails.conversation_history.length > 0) {
-        // Convert backend format to frontend format
-        const formattedConversation = fullTripDetails.conversation_history.map(msg => ({
-          message: msg.content,
-          isUser: msg.role === 'user',
-          timestamp: new Date().toISOString()
-        }));
-        
-        console.log('✅ Formatted conversation:', formattedConversation);
-        setConversation(formattedConversation);
-        console.log(`✅ Loaded ${formattedConversation.length} conversation messages`);
-        
-        // Force a small delay to ensure state updates
-        setTimeout(() => {
-          console.log('🔍 Conversation state after update:', formattedConversation.length);
-        }, 100);
-      } else {
-        // Fallback: Show just the plan content if no conversation history
-        console.log('⚠️ No conversation history found, showing content only');
-        const fallbackMessage = [{
-          message: fullTripDetails.content || `Trip plan for ${fullTripDetails.destination}`,
-          isUser: false,
-          timestamp: new Date().toISOString()
-        }];
-        console.log('📝 Setting fallback message:', fallbackMessage);
-        setConversation(fallbackMessage);
-      }
-    } else {
-      console.error('❌ No trip details returned from API');
-    }
-  } catch (error) {
-    console.error('❌ Error loading trip details:', error);
-    setActiveTrip(trip);
-    // Set a basic conversation message even on error
-    setConversation([{
-      message: trip.content || `Trip plan for ${trip.destination}`,
-      isUser: false,
-      timestamp: new Date().toISOString()
-    }]);
-  } finally {
-    setIsLoading(false);
-  }
-};
-// Replace the handleSendMessage function in src/pages/CreateTrip.js
-
-// Replace the handleSendMessage function in CreateTrip.js
-const handleSendMessage = async () => {
-  if (!prompt.trim()) return;
-
-  setIsGenerating(true);
-
-  try {
-    // Add user message to conversation immediately for better UX
-    const userMessage = {
-      message: prompt,
-      isUser: true,
-      timestamp: new Date().toISOString()
+    return () => {
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchend', handleTouchEnd);
     };
+  }, [sidebarOpen]);
+
+  const handleTripClick = async (trip) => {
+    setIsLoading(true);
     
-    setConversation(prev => [...prev, userMessage]);
-    const currentPrompt = prompt;
-    setPrompt('');
-
-    let response;
-
-    if (activeTrip) {
-      // ✅ USE CHAT ENDPOINT for existing plans
-      console.log('🔄 Sending follow-up question to plan:', activeTrip.id);
+    try {
+      // Load the full plan details (includes content and conversation_history)
+      const fullTripDetails = await fetchTripDetails(trip.id);
       
-      // Use proper request body with ChatRequest schema
-      response = await makeAuthenticatedRequest(`/plans/chat/${activeTrip.id}`, {
-        method: 'POST',
-        body: JSON.stringify({
-          message: currentPrompt  // This matches ChatRequest schema
-        })
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      console.log('📥 Chat API Response:', data);
-      
-      // ✅ CRITICAL: The backend now returns the updated plan with conversation_history
-      if (data.conversation_history && Array.isArray(data.conversation_history)) {
-        console.log('✅ Found conversation_history with', data.conversation_history.length, 'messages');
+      if (fullTripDetails) {
+        setActiveTrip(fullTripDetails);
         
-        // Convert backend format to frontend format
-        const formattedConversation = data.conversation_history.map(msg => ({
-          message: msg.content,
-          isUser: msg.role === 'user',
-          timestamp: new Date().toISOString()
-        }));
+        // Save to localStorage and URL for persistence
+        localStorage.setItem('lastActiveTripId', fullTripDetails.id.toString());
+        navigate(`/create-trip?trip=${fullTripDetails.id}`, { replace: true });
         
-        console.log('🔄 Setting conversation to:', formattedConversation);
-        setConversation(formattedConversation);
+        // ✅ Load conversation history from the plan object
+        if (fullTripDetails.conversation_history && Array.isArray(fullTripDetails.conversation_history) && fullTripDetails.conversation_history.length > 0) {
+          // Convert backend format to frontend format
+          const formattedConversation = fullTripDetails.conversation_history.map(msg => ({
+            message: msg.content,
+            isUser: msg.role === 'user',
+            timestamp: new Date().toISOString()
+          }));
+          
+          setConversation(formattedConversation);
+        } else {
+          // Fallback: Show just the plan content if no conversation history
+          const fallbackMessage = [{
+            message: fullTripDetails.content || `Trip plan for ${fullTripDetails.destination}`,
+            isUser: false,
+            timestamp: new Date().toISOString()
+          }];
+          setConversation(fallbackMessage);
+        }
       } else {
-        console.log('⚠️ No conversation_history found, using content field');
-        
-        // Fallback: Use the content field
-        const aiMessage = {
-          message: data.content || "I've processed your request!",
-          isUser: false,
-          timestamp: new Date().toISOString()
-        };
-        
-        setConversation(prev => [...prev, aiMessage]);
+        console.error('❌ No trip details returned from API');
       }
-      
-      // ✅ Update the active trip with the latest data
-      setActiveTrip(data);
-      
-    } else {
-      // Create new trip (your existing code for new trips)
-      const parsedDetails = parsePrompt(currentPrompt);
-      const planData = {
-        title: `${parsedDetails.duration}-Day Trip to ${parsedDetails.destination}`,
-        destination: parsedDetails.destination,
-        duration: parsedDetails.duration,
-        budget: parsedDetails.budget,
-        currency: parsedDetails.currency,
-        preferences: parsedDetails.preferences,
-        group_size: parsedDetails.group_size
+    } catch (error) {
+      console.error('❌ Error loading trip details:', error);
+      setActiveTrip(trip);
+      // Set a basic conversation message even on error
+      setConversation([{
+        message: trip.content || `Trip plan for ${trip.destination}`,
+        isUser: false,
+        timestamp: new Date().toISOString()
+      }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!prompt.trim()) return;
+
+    setIsGenerating(true);
+
+    try {
+      // Add user message to conversation immediately for better UX
+      const userMessage = {
+        message: prompt,
+        isUser: true,
+        timestamp: new Date().toISOString()
       };
+      
+      setConversation(prev => [...prev, userMessage]);
+      const currentPrompt = prompt;
+      setPrompt('');
 
-      console.log('🆕 Creating new travel plan:', planData);
+      let response;
 
-      response = await makeAuthenticatedRequest('/plans/generate', {
-        method: 'POST',
-        body: JSON.stringify(planData)
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      console.log('📥 Generate API Response:', data);
-      
-      // Set as active trip
-      setActiveTrip(data);
-      
-      // Save to localStorage and URL for persistence
-      localStorage.setItem('lastActiveTripId', data.id.toString());
-      navigate(`/create-trip?trip=${data.id}`, { replace: true });
-      
-      // ✅ Load conversation from new plan
-      if (data.conversation_history && data.conversation_history.length > 0) {
-        const formattedConversation = data.conversation_history.map(msg => ({
-          message: msg.content,
-          isUser: msg.role === 'user',
-          timestamp: new Date().toISOString()
-        }));
+      if (activeTrip) {
+        // ✅ USE CHAT ENDPOINT for existing plans
+        response = await makeAuthenticatedRequest(`/plans/chat/${activeTrip.id}`, {
+          method: 'POST',
+          body: JSON.stringify({
+            message: currentPrompt
+          })
+        });
         
-        setConversation(formattedConversation);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // ✅ CRITICAL: The backend now returns the updated plan with conversation_history
+        if (data.conversation_history && Array.isArray(data.conversation_history)) {
+          // Convert backend format to frontend format
+          const formattedConversation = data.conversation_history.map(msg => ({
+            message: msg.content,
+            isUser: msg.role === 'user',
+            timestamp: new Date().toISOString()
+          }));
+          
+          setConversation(formattedConversation);
+        } else {
+          // Fallback: Use the content field
+          const aiMessage = {
+            message: data.content || "I've processed your request!",
+            isUser: false,
+            timestamp: new Date().toISOString()
+          };
+          
+          setConversation(prev => [...prev, aiMessage]);
+        }
+        
+        // ✅ Update the active trip with the latest data
+        setActiveTrip(data);
+        
       } else {
-        // Fallback for new plans
-        const aiMessage = {
-          message: data.content || "I've created your travel plan!",
-          isUser: false,
-          timestamp: new Date().toISOString()
+        // Create new trip
+        const parsedDetails = parsePrompt(currentPrompt);
+        const planData = {
+          title: `${parsedDetails.duration}-Day Trip to ${parsedDetails.destination}`,
+          destination: parsedDetails.destination,
+          duration: parsedDetails.duration,
+          budget: parsedDetails.budget,
+          currency: parsedDetails.currency,
+          preferences: parsedDetails.preferences,
+          group_size: parsedDetails.group_size
         };
+
+        response = await makeAuthenticatedRequest('/plans/generate', {
+          method: 'POST',
+          body: JSON.stringify(planData)
+        });
         
-        setConversation([aiMessage]);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Set as active trip
+        setActiveTrip(data);
+        
+        // Save to localStorage and URL for persistence
+        localStorage.setItem('lastActiveTripId', data.id.toString());
+        navigate(`/create-trip?trip=${data.id}`, { replace: true });
+        
+        // ✅ Load conversation from new plan
+        if (data.conversation_history && data.conversation_history.length > 0) {
+          const formattedConversation = data.conversation_history.map(msg => ({
+            message: msg.content,
+            isUser: msg.role === 'user',
+            timestamp: new Date().toISOString()
+          }));
+          
+          setConversation(formattedConversation);
+        } else {
+          // Fallback for new plans
+          const aiMessage = {
+            message: data.content || "I've created your travel plan!",
+            isUser: false,
+            timestamp: new Date().toISOString()
+          };
+          
+          setConversation([aiMessage]);
+        }
+        
+        // Add to trips list
+        setTrips(prev => [data, ...prev]);
       }
       
-      // Add to trips list
-      setTrips(prev => [data, ...prev]);
+    } catch (error) {
+      console.error('❌ Error in handleSendMessage:', error);
+      
+      // Remove the optimistic user message on error
+      setConversation(prev => prev.slice(0, -1));
+      
+      let errorMessage = "Sorry, I encountered an error. Please try again.";
+      
+      if (error.message.includes('Failed to fetch')) {
+        errorMessage = "Unable to connect to the server. Please check your internet connection.";
+      } else if (error.message.includes('Session expired')) {
+        errorMessage = "Your session has expired. Please log in again.";
+        navigate('/login');
+      } else if (error.message.includes('422')) {
+        errorMessage = "Invalid request format. Please try again.";
+      } else {
+        errorMessage = error.message || "An unexpected error occurred.";
+      }
+      
+      // Add error message to conversation
+      const errorMessageObj = {
+        message: errorMessage,
+        isUser: false,
+        timestamp: new Date().toISOString()
+      };
+      setConversation(prev => [...prev, errorMessageObj]);
+    } finally {
+      setIsGenerating(false);
     }
-    
-  } catch (error) {
-    console.error('❌ Error in handleSendMessage:', error);
-    
-    // Remove the optimistic user message on error
-    setConversation(prev => prev.slice(0, -1));
-    
-    let errorMessage = "Sorry, I encountered an error. Please try again.";
-    
-    if (error.message.includes('Failed to fetch')) {
-      errorMessage = "Unable to connect to the server. Please check your internet connection.";
-    } else if (error.message.includes('Session expired')) {
-      errorMessage = "Your session has expired. Please log in again.";
-      navigate('/login');
-    } else if (error.message.includes('422')) {
-      errorMessage = "Invalid request format. Please try again.";
-    } else {
-      errorMessage = error.message || "An unexpected error occurred.";
-    }
-    
-    // Add error message to conversation
-    const errorMessageObj = {
-      message: errorMessage,
-      isUser: false,
-      timestamp: new Date().toISOString()
-    };
-    setConversation(prev => [...prev, errorMessageObj]);
-  } finally {
-    setIsGenerating(false);
-  }
-};
+  };
 
   const handleDeleteTrip = async (tripId, e) => {
     e.stopPropagation();
@@ -736,9 +727,45 @@ const handleSendMessage = async () => {
   }
 
   return (
-    <div className={`trip-planner-ct ${sidebarOpen ? 'sidebar-open-ct' : 'sidebar-closed-ct'}`}>
+    <div 
+      className={`trip-planner-ct ${sidebarOpen ? 'sidebar-open-ct' : 'sidebar-closed-ct'}`}
+      onClick={() => {
+        // Close sidebar when clicking on overlay on mobile
+        if (window.innerWidth <= 768 && sidebarOpen) {
+          setSidebarOpen(false);
+        }
+      }}
+    >
+      {/* Sidebar Toggle Button */}
+      
+
+     <div className="mobile-header-ct">
+  <button 
+    className="mobile-menu-btn-ct"
+    onClick={(e) => {
+      e.stopPropagation();
+      setSidebarOpen(true);
+    }}
+  >
+    <FaCompass /> {/* Changed from FaBars to FaCompass */}
+  </button>
+  <div className="mobile-header-content-ct">
+    <h1 className="mobile-title-ct">
+      {activeTrip ? activeTrip.destination : 'Trip Planner'}
+    </h1>
+    {activeTrip && (
+      <p className="mobile-subtitle-ct">
+        {activeTrip.duration} days • {activeTrip.group_size || 1} traveler{activeTrip.group_size > 1 ? 's' : ''}
+      </p>
+    )}
+  </div>
+</div>
+
       {/* Sidebar */}
-      <div className="sidebar-ct">
+      <div 
+        className="sidebar-ct"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="sidebar-header-ct">
           <button 
             className="new-trip-btn-ct"
@@ -880,37 +907,6 @@ const handleSendMessage = async () => {
                     ) : (
                       <FaUser className="fallback-user-icon-ct" />
                     )}
-                    <style>{`
-                      /* Avatar styles injected locally */
-                      .user-avatar-img-ct {
-                        width: 48px;
-                        height: 48px;
-                        border-radius: 50%;
-                        object-fit: cover;
-                        display: block;
-                        border: 2px solid rgba(255,255,255,0.9);
-                        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-                      }
-                      .fallback-user-icon-ct {
-                        width: 48px;
-                        height: 48px;
-                        color: #ffffff;
-                        background: #f59e0b;
-                        border-radius: 50%;
-                        display: inline-flex;
-                        align-items: center;
-                        justify-content: center;
-                        font-size: 20px;
-                        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-                      }
-                      /* Ensure avatar container doesn't stretch layout */
-                      .user-avatar-ct {
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        padding: 2px;
-                      }
-                    `}</style>
                   </>
                 );
               })()}
@@ -933,7 +929,7 @@ const handleSendMessage = async () => {
                 <FaUser />
                 <span className="dropdown-text-ct">Profile</span>
               </button>
-            <button onClick={() => {
+              <button onClick={() => {
                 localStorage.removeItem('token');
                 localStorage.removeItem('access_token');
                 navigate('/');
@@ -998,26 +994,26 @@ const handleSendMessage = async () => {
               <div className="chat-interface-ct" ref={chatContainerRef}>
                 <div className="chat-messages-ct">
                   {conversation.length === 0 ? (
-  <div className="no-conversation-ct">
-    <p>Start a conversation about your trip!</p>
-    <p>Ask questions like:</p>
-    <ul>
-      <li>"Can you add more details about day 2?"</li>
-      <li>"What are the best restaurants in the area?"</li>
-      <li>"Can you suggest alternative activities?"</li>
-    </ul>
-  </div>
-) : (
-  conversation.map((msg, index) => (
-    <ChatMessage
-      key={index}
-      message={msg.message}
-      isUser={msg.isUser}
-      onCopy={handleCopyMessage}
-      onDownload={handleDownloadMessageAsPDF}
-    />
-  ))
-)}
+                    <div className="no-conversation-ct">
+                      <p>Start a conversation about your trip!</p>
+                      <p>Ask questions like:</p>
+                      <ul>
+                        <li>"Can you add more details about day 2?"</li>
+                        <li>"What are the best restaurants in the area?"</li>
+                        <li>"Can you suggest alternative activities?"</li>
+                      </ul>
+                    </div>
+                  ) : (
+                    conversation.map((msg, index) => (
+                      <ChatMessage
+                        key={index}
+                        message={msg.message}
+                        isUser={msg.isUser}
+                        onCopy={handleCopyMessage}
+                        onDownload={handleDownloadMessageAsPDF}
+                      />
+                    ))
+                  )}
                   {isGenerating && (
                     <div className="chat-message-ct ai-message-ct">
                       <div className="message-avatar-ct">

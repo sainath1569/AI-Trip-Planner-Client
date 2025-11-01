@@ -754,3 +754,324 @@ html {
     padding: var(--spacing-lg);
   }
 }
+/* Enhanced Mobile Responsiveness */
+
+/* Base container improvements */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
+}
+
+/* Header improvements for mobile */
+@media (max-width: 768px) {
+  .landing-header {
+    padding: var(--spacing-sm) 0;
+  }
+  
+  .nav-bar {
+    flex-direction: column;
+    gap: var(--spacing-md);
+    padding: 0 var(--spacing-md);
+  }
+  
+  .logo h2 {
+    font-size: 1.5rem;
+  }
+  
+  .nav-links {
+    width: 100%;
+    justify-content: center;
+    gap: var(--spacing-sm);
+  }
+  
+  .nav-links .btn {
+    flex: 1;
+    justify-content: center;
+    min-width: 120px;
+  }
+}
+
+/* Enhanced Hero section mobile styles */
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 120px 0 60px;
+    min-height: auto;
+  }
+  
+  .hero-content {
+    padding: 0 var(--spacing-md);
+    margin-top:40px;
+  }
+  
+  .hero-badge {
+    font-size: 0.8rem;
+    padding: 8px 16px;
+    margin-bottom: var(--spacing-xl);
+  }
+  
+  .hero-title {
+    font-size: 2.5rem;
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .hero-description {
+    font-size: 1.1rem;
+    margin-bottom: var(--spacing-xl);
+  }
+  
+  .hero-buttons {
+    flex-direction: column;
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto var(--spacing-xl);
+  }
+  
+  .hero-buttons .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .trust-indicators {
+    flex-direction: column;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-xl);
+  }
+  
+  .trust-item {
+    justify-content: center;
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 480px) {
+  .hero-section {
+    padding: 100px 0 40px;
+  }
+  
+  .hero-title {
+    font-size: 2rem;
+    line-height: 1.2;
+  }
+  
+  .hero-description {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+  
+  .btn-large {
+    padding: 14px 24px;
+    font-size: 1rem;
+  }
+}
+
+/* Features section mobile improvements */
+@media (max-width: 768px) {
+  .features-section {
+    padding: 60px 0;
+  }
+  
+  .section-header {
+    margin-bottom: var(--spacing-xl);
+  }
+  
+  .section-header h2 {
+    font-size: 2.2rem;
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .section-header p {
+    font-size: 1.1rem;
+    padding: 0 var(--spacing-md);
+  }
+  
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
+    padding: 0 var(--spacing-md);
+  }
+  
+  .feature-card {
+    padding: var(--spacing-xl);
+    margin: 0 auto;
+    max-width: 400px;
+  }
+  
+  .feature-icon-wrapper {
+    width: 70px;
+    height: 70px;
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .feature-icon {
+    font-size: 1.7rem;
+  }
+  
+  .feature-card h3 {
+    font-size: 1.2rem;
+    min-height: auto;
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .feature-card p {
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+}
+
+/* Stats section mobile improvements */
+@media (max-width: 768px) {
+  .stats-section {
+    padding: 60px 0;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-lg);
+    padding: 0 var(--spacing-md);
+  }
+  
+  .stat-item {
+    padding: var(--spacing-lg);
+  }
+  
+  .stat-icon {
+    font-size: 2rem;
+    margin-bottom: var(--spacing-sm);
+  }
+  
+  .stat-item h3 {
+    font-size: 2.2rem;
+    margin-bottom: var(--spacing-xs);
+  }
+  
+  .stat-item p {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+  
+  .stat-item {
+    padding: var(--spacing-md);
+  }
+  
+  .stat-item h3 {
+    font-size: 2rem;
+  }
+}
+
+/* Reviews section mobile improvements */
+@media (max-width: 768px) {
+  .reviews-section {
+    padding: 60px 0;
+  }
+  
+  .reviews-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
+    padding: 0 var(--spacing-md);
+  }
+  
+  .review-card {
+    padding: var(--spacing-xl);
+    margin: 0 auto;
+    max-width: 400px;
+  }
+  
+  .review-header {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--spacing-sm);
+  }
+  
+  .review-rating {
+    margin-left: 0;
+  }
+  
+  .review-avatar {
+    width: 45px;
+    height: 45px;
+    font-size: 1rem;
+  }
+}
+
+/* CTA section mobile improvements */
+@media (max-width: 768px) {
+  .cta-section {
+    padding: 60px 0;
+  }
+  
+  .cta-content {
+    padding: 0 var(--spacing-md);
+  }
+  
+  .cta-icon {
+    font-size: 3rem;
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .cta-content h2 {
+    font-size: 2rem;
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .cta-content p {
+    font-size: 1.1rem;
+    margin-bottom: var(--spacing-xl);
+  }
+  
+  .cta-content .btn {
+    width: 100%;
+    max-width: 250px;
+    justify-content: center;
+  }
+}
+
+/* Floating elements adjustment for mobile */
+@media (max-width: 768px) {
+  .floating-element {
+    display: none; /* Hide floating elements on mobile for better performance */
+  }
+}
+
+/* Touch-friendly improvements */
+@media (max-width: 768px) {
+  .btn {
+    min-height: 44px; /* Minimum touch target size */
+  }
+  
+  .feature-card,
+  .review-card {
+    cursor: default; /* Remove pointer cursor on touch devices */
+  }
+}
+
+/* Prevent horizontal scrolling */
+.landing-page {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+/* Improved text readability on mobile */
+@media (max-width: 768px) {
+  .hero-title,
+  .section-header h2,
+  .cta-content h2 {
+    word-wrap: break-word;
+    hyphens: auto;
+  }
+}
+
+/* Safe area insets for modern mobile devices */
+@supports (padding: max(0px)) {
+  .container {
+    padding-left: max(var(--spacing-md), env(safe-area-inset-left));
+    padding-right: max(var(--spacing-md), env(safe-area-inset-right));
+  }
+}

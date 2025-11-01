@@ -765,61 +765,201 @@
   }
 }
 
+/* Tablet and small laptop */
+@media (max-width: 992px) {
+  .content-header-ad,
+  .dashboard-content-ad {
+    padding: 22px;
+  }
+  .page-title-ad {
+    font-size: 1.8rem;
+  }
+}
+
 @media (max-width: 768px) {
+  /* Stack layout: sidebar becomes top bar */
   .admin-dashboard-ad {
     flex-direction: column;
   }
-  
+
   .sidebar-ad {
     width: 100%;
     border-right: none;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    position: relative;
   }
-  
+
+  /* Make nav horizontally scrollable and touch-friendly */
   .sidebar-nav-ad {
     flex-direction: row;
     overflow-x: auto;
-    padding: 15px;
-    gap: 10px;
+    padding: 10px 12px;
+    gap: 8px;
   }
-  
+
   .nav-item-ad {
     white-space: nowrap;
-    border-radius: 8px;
+    border-radius: 10px;
     border-left: 4px solid transparent;
     margin: 0;
+    padding: 10px 14px;
+    font-size: 0.9rem;
   }
-  
+
   .metrics-grid-ad {
     grid-template-columns: 1fr;
   }
-  
+
+  /* Convert table rows into stacked, card-like items for readability */
   .table-header-ad,
   .table-row-ad {
     grid-template-columns: 1fr;
     gap: 10px;
+    padding: 14px 18px;
   }
-  
+
+  .table-body-ad {
+    max-height: 480px;
+  }
+
   .content-header-ad,
   .dashboard-content-ad {
-    padding: 20px;
+    padding: 18px;
   }
-  
+
   .cleanup-actions-ad {
     flex-direction: column;
   }
 }
 
+/* Mobile: improved stacking, off-canvas sidebar optional support */
 @media (max-width: 480px) {
-  .endpoint-info-ad {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 5px;
+  .page-title-ad {
+    font-size: 1.4rem;
   }
-  
+
+  .welcome-text-ad {
+    font-size: 0.9rem;
+  }
+
+  .content-header-ad,
+  .dashboard-content-ad {
+    padding: 14px;
+  }
+
+  /* Metric cards become compact and centered */
   .metric-card-ad {
     flex-direction: column;
     text-align: center;
-    gap: 15px;
+    gap: 12px;
+    padding: 18px;
   }
+
+  .metric-icon-ad {
+    width: 56px;
+    height: 56px;
+    font-size: 1.4rem;
+  }
+
+  .metric-value-ad {
+    font-size: 1.6rem;
+  }
+
+  /* Users table: transform into stacked cards for each row */
+  .users-table-ad {
+    padding: 6px;
+  }
+
+  .table-row-ad {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+  }
+
+  .table-row-ad .user-cell-ad,
+  .table-row-ad .email-ad,
+  .table-row-ad .role-badge-ad,
+  .table-row-ad .status-badge-ad {
+    width: 100%;
+  }
+
+  .user-avatar-ad {
+    width: 48px;
+    height: 48px;
+    font-size: 0.95rem;
+  }
+
+  .username-ad {
+    font-size: 0.95rem;
+  }
+
+  .email-ad {
+    font-size: 0.85rem;
+  }
+
+  /* Endpoints and analytics adapt */
+  .endpoint-item-ad {
+    padding: 12px;
+  }
+
+  .endpoint-info-ad {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  /* Optional: off-canvas sidebar behavior if page toggles `sidebar-open` on root container */
+  .sidebar-ad {
+    transition: transform 0.32s ease, opacity 0.32s ease;
+  }
+
+  .admin-dashboard-ad.sidebar-open .sidebar-ad {
+    transform: translateX(0) !important;
+    opacity: 1;
+  }
+
+  .admin-dashboard-ad .sidebar-ad.hidden-on-mobile {
+    transform: translateX(-110%);
+    opacity: 0;
+    position: fixed;
+    z-index: 1200;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 260px;
+    box-shadow: 6px 0 30px rgba(0,0,0,0.15);
+    background: rgba(255,255,255,0.98);
+  }
+
+  .sidebar-overlay-ad {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 1100;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .admin-dashboard-ad.sidebar-open .sidebar-overlay-ad {
+    display: block;
+    opacity: 1;
+  }
+
+  /* Smaller controls and buttons */
+  .cleanup-btn-ad,
+  .days-input-field-ad {
+    padding: 12px;
+    font-size: 0.9rem;
+  }
+
+  /* Utility helpers */
+  .hide-on-mobile { display: none !important; }
+  .show-on-mobile { display: block !important; }
 }

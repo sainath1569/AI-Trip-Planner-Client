@@ -104,15 +104,15 @@ const Landing = () => {
             <div className="trust-indicators">
               <div className="trust-item">
                 <FaStar className="trust-icon" />
-                <span>4.9/5 from 2k+ travelers</span>
+                <span>4.9/5 from 50+ travelers</span>
               </div>
               <div className="trust-item">
                 <FaUsers className="trust-icon" />
-                <span>50k+ trips planned</span>
+                <span>100+ trips planned</span>
               </div>
               <div className="trust-item">
                 <FaGlobeAmericas className="trust-icon" />
-                <span>150+ countries</span>
+                <span>15+ countries</span>
               </div>
             </div>
           </div>
@@ -192,12 +192,12 @@ const Landing = () => {
           <div className="stats-grid">
             <div className="stat-item">
               <FaRoute className="stat-icon" />
-              <h3>50,000+</h3>
+              <h3>100+</h3>
               <p>Trips Planned</p>
             </div>
             <div className="stat-item">
               <FaGlobeAmericas className="stat-icon" />
-              <h3>150+</h3>
+              <h3>15+</h3>
               <p>Countries Covered</p>
             </div>
             <div className="stat-item">

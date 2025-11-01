@@ -13,7 +13,7 @@ import {
 import { HiSparkles } from 'react-icons/hi';
 import '../styles/Profile.css';
 
-const API_BASE_URL = 'http://127.0.0.1:8000';
+const API_BASE_URL = 'https://ai-way-2-vacation.onrender.com';
 
 const Profile = () => {
   const navigate = useNavigate();

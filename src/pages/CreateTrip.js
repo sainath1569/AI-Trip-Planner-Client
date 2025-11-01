@@ -27,7 +27,7 @@ import {
 import '../styles/CreateTrip.css';
 import MapModal from '../components/MapModal';
 
-const API_BASE_URL = 'http://127.0.0.1:8000';
+const API_BASE_URL = 'https://ai-way-2-vacation.onrender.com';
 
 // Updated Chat Message Component
 const ChatMessage = ({ message, isUser, onCopy, onDownload }) => {
@@ -933,11 +933,7 @@ const handleSendMessage = async () => {
                 <FaUser />
                 <span className="dropdown-text-ct">Profile</span>
               </button>
-              <button>
-                <FaCog />
-                <span className="dropdown-text-ct">Settings</span>
-              </button>
-              <button onClick={() => {
+            <button onClick={() => {
                 localStorage.removeItem('token');
                 localStorage.removeItem('access_token');
                 navigate('/');

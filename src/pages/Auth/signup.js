@@ -68,7 +68,7 @@ function SignUpComponent() {
       console.log("Sending data:", requestBody);
 
       const response = await fetch(
-        "http://127.0.0.1:8000/auth/register",
+        "https://ai-way-2-vacation.onrender.com/auth/register",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -109,7 +109,7 @@ function SignUpComponent() {
 
       // Use the new Google auth endpoint
       const response = await fetch(
-        "http://127.0.0.1:8000/auth/google-auth",
+        "https://ai-way-2-vacation.onrender.com/auth/google-auth",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

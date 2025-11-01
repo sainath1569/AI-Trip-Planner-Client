@@ -42,7 +42,7 @@ function ResetPassword() {
 
     try {
       const response = await fetch(
-        "http://127.0.0.1:8000/auth/reset-password",
+        "https://ai-way-2-vacation.onrender.com/auth/reset-password",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

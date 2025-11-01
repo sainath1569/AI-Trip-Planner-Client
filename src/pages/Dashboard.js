@@ -60,7 +60,7 @@ const Dashboard = () => {
   const [locationInput, setLocationInput] = useState('Andhra Pradesh');
   const [weatherLoading, setWeatherLoading] = useState(false);
 
-  const API_BASE = 'http://127.0.0.1:8000';
+  const API_BASE = 'https://ai-way-2-vacation.onrender.com';
 
   // API Service Functions
   // API Service Functions

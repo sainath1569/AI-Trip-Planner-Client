@@ -31,7 +31,7 @@ const AdminDashboard = () => {
   const fetchStats = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://127.0.0.1:8000/admin/stats', {
+      const response = await fetch('https://ai-way-2-vacation.onrender.com/admin/stats', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -53,7 +53,7 @@ const AdminDashboard = () => {
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://127.0.0.1:8000/admin/users?limit=100', {
+      const response = await fetch('https://ai-way-2-vacation.onrender.com/admin/users?limit=100', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -72,8 +72,8 @@ const AdminDashboard = () => {
     try {
       const token = localStorage.getItem('token');
       const endpoint = type === 'queries' 
-        ? 'http://127.0.0.1:8000/admin/cleanup/queries' 
-        : 'http://127.0.0.1:8000/admin/cleanup/api-usage';
+        ? 'https://ai-way-2-vacation.onrender.com/admin/cleanup/queries' 
+        : 'https://ai-way-2-vacation.onrender.com/admin/cleanup/api-usage';
       
       const response = await fetch(endpoint, {
         method: 'POST',

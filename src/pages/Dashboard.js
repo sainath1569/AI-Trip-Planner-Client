@@ -953,10 +953,7 @@ useEffect(() => {
             </div>
           )}
         </div>
-        {/* Show status badge */}
-        <div className={`status-badge-db status-${trip.status}`}>
-          {trip.status}
-        </div>
+       
       </div>
     ))}
   </div>

@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/AI-Trip-Planner-Client/static/css/main.32937034.css",
-    "main.js": "/AI-Trip-Planner-Client/static/js/main.74f35ccb.js",
+    "main.js": "/AI-Trip-Planner-Client/static/js/main.713a9bee.js",
     "static/js/453.699bb50d.chunk.js": "/AI-Trip-Planner-Client/static/js/453.699bb50d.chunk.js",
     "index.html": "/AI-Trip-Planner-Client/index.html",
     "main.32937034.css.map": "/AI-Trip-Planner-Client/static/css/main.32937034.css.map",
-    "main.74f35ccb.js.map": "/AI-Trip-Planner-Client/static/js/main.74f35ccb.js.map",
+    "main.713a9bee.js.map": "/AI-Trip-Planner-Client/static/js/main.713a9bee.js.map",
     "453.699bb50d.chunk.js.map": "/AI-Trip-Planner-Client/static/js/453.699bb50d.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.32937034.css",
-    "static/js/main.74f35ccb.js"
+    "static/js/main.713a9bee.js"
   ]
 }

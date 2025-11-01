@@ -33,7 +33,7 @@ const Landing = () => {
       name: "Sarah Johnson",
       location: "Tokyo, Japan",
       rating: 5,
-      text: "WanderAI completely transformed how I travel! The currency converter saved me so much hassle, and the offline maps were a lifesaver.",
+      text: "This AI completely transformed how I travel! The currency converter saved me so much hassle, and the offline maps were a lifesaver.",
       avatar: "SJ"
     },
     {
@@ -62,7 +62,7 @@ const Landing = () => {
           <div className="nav-bar">
             <div className="logo">
               <HiSparkles className="logo-icon" />
-              <h2>WanderAI</h2>
+              <h2>AI TRIP PLANNER</h2>
             </div>
             <nav className="nav-links">
               <Link to="/login" className="btn btn-secondary">Sign In</Link>

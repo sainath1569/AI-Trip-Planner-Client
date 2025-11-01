@@ -195,39 +195,48 @@ const makePublicRequest = async (endpoint, options = {}) => {
       console.error('Error fetching user data:', error);
     }
   };
-
-  const fetchDashboardData = async () => {
+const fetchDashboardData = async () => {
+  try {
+    // Fetch recent plans from plans endpoint
     try {
-      // Fetch recent trips from user history
-      try {
-        const historyResponse = await makeAuthenticatedRequest('/users/me/history?limit=6');
-        const queries = await historyResponse.json();
+      const plansResponse = await makeAuthenticatedRequest('/plans/?skip=0&limit=6');
+      const plans = await plansResponse.json();
+      
+      console.log('Plans API Response:', plans); // Debug log
+      
+      if (plans && Array.isArray(plans) && plans.length > 0) {
+        const formattedTrips = plans.map((plan, index) => ({
+          id: plan.id || index,
+          title: plan.title || `Trip ${index + 1}`,
+          date: new Date(plan.created_at).toLocaleDateString(),
+          location: plan.destination || 'Unknown Location',
+          type: plan.trip_type || plan.status?.toUpperCase() || 'TRIP',
+          budget: plan.budget || 0,
+          duration: plan.duration || 0,
+          status: plan.status || 'draft'
+        }));
+        setRecentTrips(formattedTrips);
         
-        if (queries && queries.length > 0) {
-          const formattedTrips = queries.map((query, index) => ({
-            id: query.id || index,
-            title: query.query_text?.substring(0, 30) + (query.query_text?.length > 30 ? '...' : '') || `Trip ${index + 1}`,
-            date: new Date(query.created_at).toLocaleDateString(),
-            location: query.destination || 'Unknown Location',
-            type: query.trip_type || 'TRIP',
-            favorite: query.favorite || false
-          }));
-          setRecentTrips(formattedTrips);
-        } else {
-          setRecentTrips([]);
-        }
-      } catch (error) {
-        console.warn('History endpoint not available');
+        // Update stats with actual plan count
+        setStats(prev => ({
+          ...prev,
+          totalPlans: plans.length
+        }));
+      } else {
         setRecentTrips([]);
       }
-
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      console.warn('Plans endpoint not available:', error);
       setRecentTrips([]);
-    } finally {
-      setLoading(false);
     }
-  };
+
+  } catch (error) {
+    console.error('Error fetching dashboard data:', error);
+    setRecentTrips([]);
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Weather Functions
   const fetchWeatherData = async (city) => {
@@ -910,49 +919,62 @@ useEffect(() => {
           </div>
 
           {recentTrips.length > 0 ? (
-            <div className="trips-grid-db">
-              {recentTrips.map(trip => (
-                <div 
-                  key={trip.id} 
-                  className="trip-card-db"
-                  onClick={() => handleTripClick(trip.id)}
-                >
-                  <div className="trip-header-db">
-                    <h3 className="trip-title-db">{trip.title}</h3>
-                    {trip.favorite && (
-                      <span className="favorite-badge-db">
-                        <FaStar />
-                      </span>
-                    )}
-                  </div>
-                  <div className="trip-meta-db">
-                    
-                    <div className="trip-date-db">
-                      <FaCalendarAlt className="meta-icon-db" />
-                      {trip.date}
-                    </div>
-                  </div>
-                  <div className="trip-type-badge-db">
-                    {trip.type}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="empty-state-db">
-              <div className="empty-icon-db">
-                <GiPalmTree />
-              </div>
-              <h3>No trips planned yet</h3>
-              <p>Start planning your first adventure with our AI assistant</p>
-              <button 
-                className="new-trip-btn-db primary-db"
-                onClick={handleCreateNewTrip}
-              >
-                Create Your First Trip
-              </button>
+  <div className="trips-grid-db">
+    {recentTrips.map(trip => (
+      <div 
+        key={trip.id} 
+        className="trip-card-db"
+        onClick={() => handleTripClick(trip.id)}
+      >
+        <div className="trip-header-db">
+          <h3 className="trip-title-db">{trip.title}</h3>
+        </div>
+        <div className="trip-meta-db">
+          <div className="trip-location-db">
+            <FaMapMarkerAlt className="meta-icon-db" />
+            {trip.location}
+          </div>
+          <div className="trip-date-db">
+            <FaCalendarAlt className="meta-icon-db" />
+            {trip.date}
+          </div>
+          {/* Show budget if available */}
+          {trip.budget > 0 && (
+            <div className="trip-budget-db">
+              <FaMoneyBillWave className="meta-icon-db" />
+              ${trip.budget.toLocaleString()}
             </div>
           )}
+          {/* Show duration if available */}
+          {trip.duration > 0 && (
+            <div className="trip-duration-db">
+              <FaCalendarAlt className="meta-icon-db" />
+              {trip.duration} days
+            </div>
+          )}
+        </div>
+        {/* Show status badge */}
+        <div className={`status-badge-db status-${trip.status}`}>
+          {trip.status}
+        </div>
+      </div>
+    ))}
+  </div>
+) : (
+  <div className="empty-state-db">
+    <div className="empty-icon-db">
+      <GiPalmTree />
+    </div>
+    <h3>No trips planned yet</h3>
+    <p>Start planning your first adventure with our AI assistant</p>
+    <button 
+      className="new-trip-btn-db primary-db"
+      onClick={handleCreateNewTrip}
+    >
+      Create Your First Trip
+    </button>
+  </div>
+)}
         </div>
       </div>
     </div>

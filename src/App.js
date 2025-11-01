@@ -1,6 +1,6 @@
 // src/App.js
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Landing from './pages/LandingPage';
 import Login from './pages/Auth/signin';
 import Signup from './pages/Auth/signup';
@@ -10,7 +10,6 @@ import Dashboard from './pages/Dashboard';
 import CreateTrip from './pages/CreateTrip';
 import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
-// import AdminPanel from './pages/Admin/AdminPanel';
 import './App.css';
 
 function App() {
@@ -31,9 +30,6 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/planner" element={<CreateTrip />} />
           <Route path="/create-trip" element={<CreateTrip />} />
-          
-          {/* Protected Routes - Admin */}
-          {/* <Route path="/admin" element={<AdminPanel />} /> */}
         </Routes>
       </div>
     </Router>

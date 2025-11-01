@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/AI-Trip-Planner-Client/static/css/main.32937034.css",
-    "main.js": "/AI-Trip-Planner-Client/static/js/main.713a9bee.js",
+    "main.css": "/AI-Trip-Planner-Client/static/css/main.43222665.css",
+    "main.js": "/AI-Trip-Planner-Client/static/js/main.74318908.js",
     "static/js/453.699bb50d.chunk.js": "/AI-Trip-Planner-Client/static/js/453.699bb50d.chunk.js",
     "index.html": "/AI-Trip-Planner-Client/index.html",
-    "main.32937034.css.map": "/AI-Trip-Planner-Client/static/css/main.32937034.css.map",
-    "main.713a9bee.js.map": "/AI-Trip-Planner-Client/static/js/main.713a9bee.js.map",
+    "main.43222665.css.map": "/AI-Trip-Planner-Client/static/css/main.43222665.css.map",
+    "main.74318908.js.map": "/AI-Trip-Planner-Client/static/js/main.74318908.js.map",
     "453.699bb50d.chunk.js.map": "/AI-Trip-Planner-Client/static/js/453.699bb50d.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.32937034.css",
-    "static/js/main.713a9bee.js"
+    "static/css/main.43222665.css",
+    "static/js/main.74318908.js"
   ]
 }

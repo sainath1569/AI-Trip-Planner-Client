@@ -534,148 +534,141 @@ const CreateTrip = () => {
   };
 
   const handleSendMessage = async () => {
-    if (!prompt.trim()) return;
+  if (!prompt.trim()) return;
 
-    setIsGenerating(true);
+  setIsGenerating(true);
 
-    try {
-      // Add user message to conversation immediately for better UX
-      const userMessage = {
-        message: prompt,
-        isUser: true,
-        timestamp: new Date().toISOString()
-      };
+  try {
+    // Add user message to conversation immediately for better UX
+    const userMessage = {
+      message: prompt,
+      isUser: true,
+      timestamp: new Date().toISOString()
+    };
+    
+    const currentPrompt = prompt;
+    setPrompt('');
+
+    let response;
+
+    if (activeTrip) {
+      // ✅ USE CHAT ENDPOINT for existing plans
+      response = await makeAuthenticatedRequest(`/plans/chat/${activeTrip.id}`, {
+        method: 'POST',
+        body: JSON.stringify({
+          message: currentPrompt
+        })
+      });
       
-      setConversation(prev => [...prev, userMessage]);
-      const currentPrompt = prompt;
-      setPrompt('');
-
-      let response;
-
-      if (activeTrip) {
-        // ✅ USE CHAT ENDPOINT for existing plans
-        response = await makeAuthenticatedRequest(`/plans/chat/${activeTrip.id}`, {
-          method: 'POST',
-          body: JSON.stringify({
-            message: currentPrompt
-          })
-        });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // ✅ CRITICAL: Always fetch fresh trip data after chat to ensure clean state
+      const updatedTrip = await fetchTripDetails(activeTrip.id);
+      if (updatedTrip) {
+        setActiveTrip(updatedTrip);
         
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        // ✅ CRITICAL: The backend now returns the updated plan with conversation_history
-        if (data.conversation_history && Array.isArray(data.conversation_history)) {
-          // Convert backend format to frontend format
-          const formattedConversation = data.conversation_history.map(msg => ({
-            message: msg.content,
+        // ✅ Load conversation from freshly fetched data (not from chat response)
+        if (updatedTrip.conversation_history && Array.isArray(updatedTrip.conversation_history)) {
+          const formattedConversation = updatedTrip.conversation_history.map(msg => ({
+            message: msg.content || '',
             isUser: msg.role === 'user',
             timestamp: new Date().toISOString()
           }));
-          
           setConversation(formattedConversation);
         } else {
-          // Fallback: Use the content field
+          // Fallback to content field
           const aiMessage = {
-            message: data.content || "I've processed your request!",
+            message: updatedTrip.content || "I've processed your request!",
             isUser: false,
             timestamp: new Date().toISOString()
           };
-          
-          setConversation(prev => [...prev, aiMessage]);
-        }
-        
-        // ✅ Update the active trip with the latest data
-        setActiveTrip(data);
-        
-      } else {
-        // Create new trip
-        const parsedDetails = parsePrompt(currentPrompt);
-        const planData = {
-          title: `${parsedDetails.duration}-Day Trip to ${parsedDetails.destination}`,
-          destination: parsedDetails.destination,
-          duration: parsedDetails.duration,
-          budget: parsedDetails.budget,
-          currency: parsedDetails.currency,
-          preferences: parsedDetails.preferences,
-          group_size: parsedDetails.group_size
-        };
-
-        response = await makeAuthenticatedRequest('/plans/generate', {
-          method: 'POST',
-          body: JSON.stringify(planData)
-        });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        // Set as active trip
-        setActiveTrip(data);
-        
-        // Save to localStorage and URL for persistence
-        localStorage.setItem('lastActiveTripId', data.id.toString());
-        navigate(`/create-trip?trip=${data.id}`, { replace: true });
-        
-        // ✅ Load conversation from new plan
-        if (data.conversation_history && data.conversation_history.length > 0) {
-          const formattedConversation = data.conversation_history.map(msg => ({
-            message: msg.content,
-            isUser: msg.role === 'user',
-            timestamp: new Date().toISOString()
-          }));
-          
-          setConversation(formattedConversation);
-        } else {
-          // Fallback for new plans
-          const aiMessage = {
-            message: data.content || "I've created your travel plan!",
-            isUser: false,
-            timestamp: new Date().toISOString()
-          };
-          
           setConversation([aiMessage]);
         }
-        
-        // Add to trips list
-        setTrips(prev => [data, ...prev]);
       }
       
-    } catch (error) {
-      console.error('❌ Error in handleSendMessage:', error);
-      
-      // Remove the optimistic user message on error
-      setConversation(prev => prev.slice(0, -1));
-      
-      let errorMessage = "Sorry, I encountered an error. Please try again.";
-      
-      if (error.message.includes('Failed to fetch')) {
-        errorMessage = "Unable to connect to the server. Please check your internet connection.";
-      } else if (error.message.includes('Session expired')) {
-        errorMessage = "Your session has expired. Please log in again.";
-        navigate('/login');
-      } else if (error.message.includes('422')) {
-        errorMessage = "Invalid request format. Please try again.";
-      } else {
-        errorMessage = error.message || "An unexpected error occurred.";
-      }
-      
-      // Add error message to conversation
-      const errorMessageObj = {
-        message: errorMessage,
-        isUser: false,
-        timestamp: new Date().toISOString()
+    } else {
+      // Create new trip (existing code)
+      const parsedDetails = parsePrompt(currentPrompt);
+      const planData = {
+        title: `${parsedDetails.duration}-Day Trip to ${parsedDetails.destination}`,
+        destination: parsedDetails.destination,
+        duration: parsedDetails.duration,
+        budget: parsedDetails.budget,
+        currency: parsedDetails.currency,
+        preferences: parsedDetails.preferences,
+        group_size: parsedDetails.group_size
       };
-      setConversation(prev => [...prev, errorMessageObj]);
-    } finally {
-      setIsGenerating(false);
+
+      response = await makeAuthenticatedRequest('/plans/generate', {
+        method: 'POST',
+        body: JSON.stringify(planData)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Set as active trip
+      setActiveTrip(data);
+      
+      // Save to localStorage and URL for persistence
+      localStorage.setItem('lastActiveTripId', data.id.toString());
+      navigate(`/create-trip?trip=${data.id}`, { replace: true });
+      
+      // Load conversation from new plan
+      if (data.conversation_history && Array.isArray(data.conversation_history) && data.conversation_history.length > 0) {
+        const formattedConversation = data.conversation_history.map(msg => ({
+          message: msg.content || '',
+          isUser: msg.role === 'user',
+          timestamp: new Date().toISOString()
+        }));
+        setConversation(formattedConversation);
+      } else {
+        const aiMessage = {
+          message: data.content || "I've created your travel plan!",
+          isUser: false,
+          timestamp: new Date().toISOString()
+        };
+        setConversation([aiMessage]);
+      }
+      
+      // Add to trips list
+      setTrips(prev => [data, ...prev]);
     }
-  };
+    
+  } catch (error) {
+    console.error('❌ Error in handleSendMessage:', error);
+    
+    let errorMessage = "Sorry, I encountered an error. Please try again.";
+    
+    if (error.message.includes('Failed to fetch')) {
+      errorMessage = "Unable to connect to the server. Please check your internet connection.";
+    } else if (error.message.includes('Session expired')) {
+      errorMessage = "Your session has expired. Please log in again.";
+      navigate('/login');
+    } else if (error.message.includes('422')) {
+      errorMessage = "Invalid request format. Please try again.";
+    } else {
+      errorMessage = error.message || "An unexpected error occurred.";
+    }
+    
+    // Add error message to conversation
+    const errorMessageObj = {
+      message: errorMessage,
+      isUser: false,
+      timestamp: new Date().toISOString()
+    };
+    setConversation(prev => [...prev, errorMessageObj]);
+  } finally {
+    setIsGenerating(false);
+  }
+};
 
   const handleDeleteTrip = async (tripId, e) => {
     e.stopPropagation();
